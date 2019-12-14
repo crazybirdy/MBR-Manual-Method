@@ -1,0 +1,47 @@
+
+
+------------------------------------------------------------------------------------------------------------------
+
+You can patch it by Clover on the fly.
+
+Or
+
+Just use script ich10fix to patch AppleAHCIPort.kext as below.
+
+------------------------------------------------------------------------------------------------------------------
+
+ICH10 Hotplugging issues, patch code is the same as 10.13, 10.14, 10.15.
+
+com.apple.driver.AppleAHCIPort
+Find    --> 40600200
+Replace --> 0﻿0000000 ﻿
+
+------------------------------------------------------------------------------------------------------------------
+
+Q.. Have the problem of "Still waiting for root device", "disk1:I/O error", "hot-plug didn’t work" for ICH10 ?
+
+A.. patch the AppleAHCIPort.kext (10.13, 10.14)
+    For this we need two binary patches.
+    First patch fix "Still waiting for root device", "disk1:I/O error" for ICH10: (Need only for 10.13, not need for 10.14)
+           Find    4585F60F 95C289C8 83E0FE66 85C9780F 84D2750B 
+           Replace 89C883E0 FE6685C9 0F98C141 08CC9090 9090750B 
+    Second patch will work hot-plug: (Need for both 10.13 and 10.14)
+           Find    89C82540 6002003D 40200000 750C81E1 BF7FFFFF 898B5101 0000
+           Replace 90909090 90909090 90909090 90909090 90909090 90909090 9090
+    http://www.insanelymac.com/forum/topic/327488-macos-high-sierra-final-release-is-out-17a365/?p=2505086
+
+------------------------------------------------------------------------------------------------------------------
+
+Q.. 发生 ICH10 的 "Still waiting for root device", "disk1:I/O error", "hot-plug 失效" 的问题?
+
+A.. 使用 AppleAHCIPort.kext (10.13, 10.14) 的补丁，须使用两个补丁。
+    第一，修补 "Still waiting for root device", "disk1:I/O error" 的补丁: (10.13)
+         寻找 4585F60F 95C289C8 83E0FE66 85C9780F 84D2750B
+         替换 89C883E0 FE6685C9 0F98C141 08CC9090 9090750B 
+    第二，修补 "hot-plug 失效" 的补丁: (10.13, 10.14)
+         寻找 89C82540 6002003D 40200000 750C81E1 BF7FFFFF 898B5101 0000
+         替换 90909090 90909090 90909090 90909090 90909090 90909090 9090
+    http://www.insanelymac.com/forum/topic/327488-macos-high-sierra-final-release-is-out-17a365/?p=2505086
+
+------------------------------------------------------------------------------------------------------------------
+

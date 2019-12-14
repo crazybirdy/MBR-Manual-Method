@@ -1,0 +1,82 @@
+#!/bin/bash
+printf '\033[8;30;100t'
+clear
+
+version=1.0.1
+MBRLink='https://github.com/crazybirdy/MBR-Manual-Method.git'
+
+function downloadMBR() {
+  if [[ ! -d "$HOME/MBR-Manual-Method" ]]; then
+    echo
+    cd "$HOME"
+    git clone $MBRLink
+    echo
+    echo "git clone is done."
+    echo
+  fi
+}
+function updateMBR() {
+  cd "$HOME/MBR-Manual-Method"
+  if [[ -d .git ]]; then
+    echo
+    git fetch --all
+    git reset --hard origin/master
+    git pull origin master
+  else
+    cd "$HOME"
+    rm -rf "$HOME/MBR-Manual-Method"
+    downloadMBR
+  fi
+  open "$HOME/MBR-Manual-Method"
+  open https://github.com/crazybirdy/MBR-Manual-Method
+  echo
+}
+function fixpermission() {
+  FileNameArray=(
+    EasyMBR-Installer1013
+    EasyMBR-Installer1015
+    RunMe
+    Old-macOS-10+11+12/installScript_1012fullapp
+    Q3-HFS+UpdateCache/copytempdata
+    Q3-HFS+UpdateCache/hfsupdatecache
+    Q4-mojave2core/mojave2core
+    Q5-AppleAHCIPort/ich10fix
+    Q6-DownloadFullApp/installScript_1013fullapp
+    Q6-DownloadFullApp/installScript_1014fullapp
+    Q6-DownloadFullApp/installScript_1015fullapp
+    Q6-DownloadFullApp/installScript_allfullapp
+    Q7-Update-installScript/dm
+    Q7-Update-installScript/installScript_1013update
+    Q7-Update-installScript/installScript_1014update
+    Q7-Update-installScript/installScript_1015update
+    )
+  let index=0
+  for filename in "${FileNameArray[@]}"; do
+    if [[ -f "$HOME/MBR-Manual-Method/${filename}" ]]; then
+      chmod +x "$HOME/MBR-Manual-Method/${filename}"
+    fi
+    let index++
+  done
+}
+function untargz() {
+  cd "$HOME/MBR-Manual-Method"
+  rm -rf System
+  rm -rf System1015
+  tar zxvf System.tar.gz 2>/dev/null
+  tar zxvf System1015.tar.gz 2>/dev/null
+  echo
+}
+function main()
+{
+  echo
+  echo "This script will download the MBR-Manual-Method files to $HOME/MBR-Manual-Method."
+  echo
+  downloadMBR
+  updateMBR
+  fixpermission
+  untargz
+}
+
+main
+
+exit 0

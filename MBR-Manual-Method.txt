@@ -1,0 +1,20 @@
+
+ MBR-Manual-Method : (same as 10.12 before)
+
+ Install via stage 2 manually,
+ which is worked with both MBR HFS+ and GUID HFS+, will never convert the partition format.
+
+ This MBR-Manual-Method ...
+ It can be installed as Fresh installation on formated blank partition only,
+ but can't be installed as update from previous version like as 10.12.x, 10.13.x.
+
+ Just use EasyMBR-Installer10xx to make installer, it works with both MBR and GPT.
+
+
+---------------------------------------------------------------------------
+
+List of known issues: 10.15
+
+1. Some app-pkg-installers can't install to HFS+, but install to APFS fine.
+
+---------------------------------------------------------------------------

@@ -1,0 +1,34 @@
+#!/bin/bash
+
+# copyright 2019 crazybirdy. ver 2019.06.25
+
+echo
+echo "This script will run the following commands to update caches, and it should be used only on -s, single user mode."
+echo
+echo "/sbin/mount -uw /"
+echo "update_dyld_shared_cache -force"
+echo "kextcache -i /"
+echo "reboot"
+echo
+read -rsp $"Press any key to start to update system caches... " -n1 key
+echo
+
+echo
+echo "/sbin/mount -uw /"
+echo
+/sbin/mount -uw /
+
+echo
+echo "update_dyld_shared_cache -force"
+echo
+update_dyld_shared_cache -force
+
+echo
+echo "kextcache -i /"
+echo
+kextcache -i /
+
+echo
+echo "Finished, rebooting now."
+echo
+reboot

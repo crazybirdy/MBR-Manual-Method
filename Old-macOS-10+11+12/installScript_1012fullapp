@@ -1,0 +1,309 @@
+#!/bin/sh
+printf '\033[8;60;140t'
+clear
+
+LocalScriptVer="v1.0.1"
+RemoteScriptVer=""
+RemoteScriptPath="https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master/Old-macOS-10+11+12"
+LocateScriptPath="$HOME/MBR-Manual-Method/Old-macOS-10+11+12"
+ScriptName="installScript_1012fullapp"
+
+FileNameArray=(
+  installScript_1012.png
+  OSInstaller.MBR.10.10.5.14F27.zip
+  OSInstaller.MBR.10.11.6.15G31.zip
+  OSInstaller.MBR.10.12.6.16G29.zip
+  )
+
+autodownload() {
+if [[ ! -d "${LocateScriptPath}" ]]; then
+  mkdir -p "${LocateScriptPath}"
+fi
+let index=0
+for filename in "${FileNameArray[@]}"; do
+  if [[ ! -f "${LocateScriptPath}/${filename}" ]]; then
+    echo
+    echo "Downloading: ${filename} ..."
+    curl "${RemoteScriptPath}/${filename}" -o "${LocateScriptPath}/${filename}"
+  fi
+  let index++
+done
+if [[ ! -f "${LocateScriptPath}/${ScriptName}" ]]; then
+  cat "$0" > "${LocateScriptPath}/${ScriptName}"
+  chmod +x "${LocateScriptPath}/${ScriptName}"
+  exec "${LocateScriptPath}/${ScriptName}"
+fi
+}
+selfUpdate() {
+  echo
+  cat "/private/tmp/${ScriptName}" > "${LocateScriptPath}/${ScriptName}"
+  chmod +x "${LocateScriptPath}/${ScriptName}"
+  open "${LocateScriptPath}"
+  exec "${LocateScriptPath}/${ScriptName}"
+}
+IsNumericOnly() {
+  [[ "${1}" =~ ^-?[0-9]+$ ]] && return 0 || return 1
+}
+updatescript() {
+  autodownload
+  rm -f "/private/tmp/${ScriptName}"
+  curl "${RemoteScriptPath}/${ScriptName}" -o "/private/tmp/${ScriptName}" 2>/dev/null
+
+  RemoteScriptVer=$( cat /private/tmp/${ScriptName} | grep 'LocalScriptVer="v' | grep -v grep | tr -cd '.0-9' )
+  LVALUE=$( echo $LocalScriptVer | tr -cd [:digit:] )
+  RVALUE=$( echo $RemoteScriptVer | tr -cd [:digit:] )
+
+  echo
+  if IsNumericOnly $RVALUE; then
+    [[ $LVALUE -eq $RVALUE ]] && printf "\e[1;34mLocal: ${LocalScriptVer}  ..  Remote: v${RemoteScriptVer}\e[1;32m%*s\e[0m" $((40-${#LocalScriptVer})) "No update available."
+    [[ $LVALUE -gt $RVALUE ]] && printf "\e[1;34mLocal: ${LocalScriptVer}  ..  Remote: v${RemoteScriptVer}\e[1;31m%*s\e[0m" $((40-${#LocalScriptVer})) "Wow, are you coming from the future?"
+    [[ $LVALUE -lt $RVALUE ]] && printf "\e[1;34mLocal: ${LocalScriptVer}  ..  Remote: v${RemoteScriptVer}\e[1;5;34m%*s\e[0m" $((40-${#LocalScriptVer})) "Update available (v$RemoteScriptVer)" && selfUpdate 
+  else
+    printf "${LocalScriptVer}\e[1;31m\n%s\e[0m" "Remote version unavailable due to unknown reasons!"
+  fi
+  clear
+}
+
+# crazybirdy ver.2019.11.01
+
+printred() {
+  printf "\e[1;31m${1}\e[0m"
+}
+if [[ -d "/Volumes/OS X Base System/" ]]; then
+  echo "正在卸載 Unmounting /Volumes/OS X Base System/"
+  diskutil eject "/Volumes/OS X Base System/"
+  rm -rf "/Volumes/OS X Base System/"
+  echo
+fi
+if [[ -d "/Volumes/OS X Install ESD/" ]]; then
+  echo "正在卸載 Unmounting /Volumes/OS X Install ESD/"
+  diskutil eject "/Volumes/OS X Install ESD/"
+  rm -rf "/Volumes/OS X Install ESD/"
+  echo
+fi
+if [[ -d "/Volumes/Install OS X/" ]]; then
+  echo "正在卸載 Unmounting /Volumes/Install OS X/"
+  diskutil eject "/Volumes/Install OS X/"
+  rm -rf "/Volumes/Install OS X/"
+  echo
+fi
+if [[ -d "/Volumes/Install macOS/" ]]; then
+  echo "正在卸載 Unmounting /Volumes/Install macOS/"
+  diskutil eject "/Volumes/Install macOS/"
+  rm -rf "/Volumes/Install macOS/"
+  echo
+fi
+clear
+
+function headline()
+{
+  echo 
+  printf "從 updates-http.cdn-apple.com 下載完整安裝app.    Download the full installer app from updates-http.cdn-apple.com.\n"
+  echo 
+}
+function pkgdetect()
+{
+  # OS X Yosemite, 10.10.5, 14F27 https://support.apple.com/en-us/HT210717
+  #url10105="http://updates-http.cdn-apple.com/2019/cert/061-41343-20191023-02465f92-3ab5-4c92-bfe2-b725447a070d/InstallMacOSX.dmg"
+  url10105html="https://support.apple.com/en-us/HT210717"
+  # OS X El Capitan, 10.11.6, 15G31 https://support.apple.com/en-us/HT206886
+  #url10116="http://updates-http.cdn-apple.com/2019/cert/061-41424-20191024-218af9ec-cf50-4516-9011-228c78eda3d2/InstallMacOSX.dmg"
+  url10116html="https://support.apple.com/en-us/HT206886"
+  # macOS Sierra, 10.12.6, 16G29 https://support.apple.com/en-us/HT208202
+  #url10126="http://updates-http.cdn-apple.com/2019/cert/061-39476-20191023-48f365f4-0015-4c41-9f44-39d3d2aca067/InstallOS.dmg"
+  url10126html="https://support.apple.com/en-us/HT208202"
+
+  echo "正在搜尋完整安裝app，請耐心等候！ Searching for full installer app from catalogs of updates-http.cdn-apple.com. Be patient!"
+  echo 
+
+  curl ${url10105html} -o "/private/tmp/url10105html" 2>/dev/null
+  url10105=`cat "/private/tmp/url10105html" | sed 's/"/\'$'\n/g' | grep http | grep dmg | grep Install `
+  curl ${url10116html} -o "/private/tmp/url10116html" 2>/dev/null
+  url10116=`cat "/private/tmp/url10116html" | sed 's/"/\'$'\n/g' | grep http | grep dmg | grep Install `
+  curl ${url10126html} -o "/private/tmp/url10126html" 2>/dev/null
+  url10126=`cat "/private/tmp/url10126html" | sed 's/"/\'$'\n/g' | grep http | grep dmg | grep Install `
+  rm -f /private/tmp/url101*
+
+if curl --output /dev/null --silent --head --fail "$url10105"; then
+  size=`curl -sI $url10105 | grep -i Content-Length | awk '{print $2}' | awk NR==1 `
+  printf "1. \e[1;31m10.10.5 14F27\e[0m, size = $size\n" 
+  echo "   $url10105"
+fi
+  echo
+if curl --output /dev/null --silent --head --fail "$url10116"; then
+  size=`curl -sI $url10116 | grep -i Content-Length | awk '{print $2}' | awk NR==1 `
+  printf "2. \e[1;31m10.11.6 15G31\e[0m, size = $size\n" 
+  echo "   $url10116"
+fi
+  echo
+if curl --output /dev/null --silent --head --fail "$url10126"; then
+  size=`curl -sI $url10126 | grep -i Content-Length | awk '{print $2}' | awk NR==1 `
+  printf "3. \e[1;31m10.12.6 16G29\e[0m, size = $size\n" 
+  echo "   $url10126"
+fi
+
+  echo
+  read -p "請選擇 要下載的 版本  Select the macOS versioin. ( 1 / 2 / 3 ) : " macOSver
+
+  case $macOSver in
+    1)
+      macOSURL="${url10105}"
+      macOSURLver="10.10.5 14F27"
+    ;;
+    2)
+      macOSURL="${url10116}"
+      macOSURLver="10.11.6 15G31"
+    ;;
+    3)
+      macOSURL="${url10126}"
+      macOSURLver="10.12.6 16G29"
+    ;;
+    *)      
+      echo
+      echo "停止進行下載！！！               Stop downloading!!!"
+      echo
+      exit 0
+    ;;
+  esac
+
+  echo
+  printf "選用版本  The selected macOS versioin:  \e[1;32m${macOSURLver}\e[0m\n"
+  echo
+  echo "${macOSURL}"
+  echo
+
+  if [[ -f "/private/tmp/macOSdmg" ]]; then
+    rm -rf "/private/tmp/macOSdmg"
+  fi
+  if [[ -d "/private/tmp/macOSdmg/Installapp" ]]; then
+    rm -rf "/private/tmp/macOSdmg/Installapp"
+  fi
+  if [[ -d "/private/tmp/macOSdmg" ]]; then
+    rm -rf "/private/tmp/macOSdmg"
+    mkdir -p "/private/tmp/macOSdmg"
+  fi
+  if [[ ! -d "/private/tmp/macOSdmg" ]]; then
+    mkdir -p  "/private/tmp/macOSdmg"
+  fi
+  printred "如果你已經發生下載錯誤，可以 預先手動下載 上列網址文件，並將文件放入 以下 正確的文件夾 即可繼續進行。\n"
+  printred "If get errors of downloading before, you can download file as above URL manually and put into correct folder as below before continuing.\n"
+  echo
+  urlmacOSdmg=`echo ${macOSURL} | sed 's/\// /g' | awk '{print $6;}' `
+  open "/private/tmp/macOSdmg"
+  echo "/private/tmp/macOSdmg/${urlmacOSdmg}"
+  echo
+  read -p "手動下載放入上列文件，或由腳本自動下載文件，繼續進行？   Put file as above manually or download file automatically, continue? (y/n) " downloadyesno
+  case "$downloadyesno" in
+    y|Y)
+      echo
+    ;;
+    *)
+      echo
+      echo "停止進行下載！！！               Stop downloading!!!"
+      echo
+      exit 0
+    ;;
+  esac
+
+  if [[ ! -e "/private/tmp/macOSdmg/${urlmacOSdmg}" ]]; then
+    curl "${macOSURL}" -o "/private/tmp/macOSdmg/${urlmacOSdmg}"
+  else
+    echo "File is already there, skipping this download."
+  fi
+  echo
+  hdiutil attach -noverify -quiet -nobrowse "/private/tmp/macOSdmg/${urlmacOSdmg}"
+  if [[ -f "/Volumes/Install OS X/InstallMacOSX.pkg" ]]; then
+    Installpkg="/Volumes/Install OS X/InstallMacOSX.pkg"
+    Installpkgone="InstallMacOSX.pkg"
+  elif [[ -f "/Volumes/Install macOS/InstallOS.pkg" ]]; then
+    Installpkg="/Volumes/Install macOS/InstallOS.pkg"
+    Installpkgone="InstallOS.pkg"
+  fi
+  echo "正在解壓縮 Unpacking now...... ${Installpkg}"
+  pkgutil --expand-full "${Installpkg}" "/private/tmp/macOSdmg/Installapp"
+
+  cd /private/tmp/macOSdmg/Installapp/${Installpkgone}/Payload
+  fullappnames=(*)
+
+  echo
+  echo "找到 Found ...... ${fullappnames}"
+  echo
+
+  for appname in "${fullappnames[@]}"
+  do
+    if [[ -e "/private/tmp/macOSdmg/Installapp/${Installpkgone}/Payload/${appname}/Contents/SharedSupport/" ]]; then
+      mv "/private/tmp/macOSdmg/Installapp/${Installpkgone}/InstallESD.dmg" "/private/tmp/macOSdmg/Installapp/${Installpkgone}/Payload/${appname}/Contents/SharedSupport/InstallESD.dmg"
+      hdiutil attach -noverify -quiet -nobrowse "/private/tmp/macOSdmg/Installapp/${Installpkgone}/Payload/${appname}/Contents/SharedSupport/InstallESD.dmg"
+      hdiutil attach -noverify -quiet -nobrowse "/Volumes/OS X Install ESD/BaseSystem.dmg"
+
+      BaseSystemDisk="/Volumes/OS X Base System"
+      ProductBuildVersion=`cat "${BaseSystemDisk}/System/Library/CoreServices/SystemVersion.plist" | grep -A 1 "ProductBuildVersion" | grep string | sed 's/<string>//' | sed 's/<\/string>//' | awk '{print $1;}' `
+      ProductVersion=`cat "${BaseSystemDisk}/System/Library/CoreServices/SystemVersion.plist" | grep -A 1 "ProductVersion" | grep string | sed 's/<string>//' | sed 's/<\/string>//' | awk '{print $1;}' `
+      printf "  下載的 Installer App 版本為     \e[1;34m${ProductVersion} ${ProductBuildVersion}\e[0m\n"
+      printf "  The downloaded Installer App is \e[1;34m${ProductVersion} ${ProductBuildVersion}\e[0m\n"
+
+      rm -rf "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}"
+      mkdir -p "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}"
+      mv "/private/tmp/macOSdmg/Installapp/${Installpkgone}/Payload/${appname}" "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}"
+      newappname="${appname}"
+    fi
+  done
+  echo
+  if [[ -d "/Volumes/OS X Base System/" ]]; then
+    echo "正在卸載 Unmounting /Volumes/OS X Base System/"
+    diskutil eject "/Volumes/OS X Base System/"
+    rm -rf "/Volumes/OS X Base System/"
+    echo
+  fi
+  if [[ -d "/Volumes/OS X Install ESD/" ]]; then
+    echo "正在卸載 Unmounting /Volumes/OS X Install ESD/"
+    diskutil eject "/Volumes/OS X Install ESD/"
+    rm -rf "/Volumes/OS X Install ESD/"
+    echo
+  fi
+  if [[ -d "/Volumes/Install OS X/" ]]; then
+    echo "正在卸載 Unmounting /Volumes/Install OS X/"
+    diskutil eject "/Volumes/Install OS X/"
+    rm -rf "/Volumes/Install OS X/"
+    echo
+  fi
+  if [[ -d "/Volumes/Install macOS/" ]]; then
+    echo "正在卸載 Unmounting /Volumes/Install macOS/"
+    diskutil eject "/Volumes/Install macOS/"
+    rm -rf "/Volumes/Install macOS/"
+    echo
+  fi
+  echo "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}"
+  ls -la "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}"
+  echo
+  echo "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}/${newappname}/Contents/SharedSupport/"
+  ls -la "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}/${newappname}/Contents/SharedSupport/"
+  open "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}/"
+
+  echo
+  echo "完整安裝app 存放在 $HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}/"
+  echo "The full installer app is located on $HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}/"
+  echo
+  printf "\e[1;34mMake sure you get the full installer without any errors during the downloading process.\e[0m\n"
+  printf "\e[1;34m1.check the received sizes of each file, make sure they’re all 100 downloaded.\e[0m\n"
+  printf "\e[1;34m2.if the downloading file \e[0m\e[1;31mgets error\e[0m\e[1;34m during the downloading process,\e[0m\n"
+  printf "\e[1;34m  and\e[0m \e[1;31mdidn’t get 100 downloaded,\e[0m\e[1;34m you\e[0m \e[1;31mneed to re-download the full installer app again.\e[0m\n"
+  echo
+  printf "If the full installer app gets error of \e[1;34mapplication is damaged, and can't be used to install.\e[0m\n"
+  printf "You need to change system-date to be \e[1;34mthe same year later as the full installer app.\e[0m\n"
+  echo
+  rm -f "/private/tmp/macOSdmg/${urlmacOSdmg}"
+  if [[ -d "/private/tmp/macOSdmg" ]]; then
+    rm -rf "/private/tmp/macOSdmg"
+  fi
+}
+function main()
+{
+  updatescript
+  headline
+  pkgdetect
+}
+
+main
+
+exit 0

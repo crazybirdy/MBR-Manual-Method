@@ -1,0 +1,23 @@
+
+
+2019.12.09	Update Q3-HFS+UpdateCache/hfsupdatecache with "kextcache -i /"
+
+2019.12.06	Update Q6-DownloadFullApp
+
+2019.11.02	Add Old-macOS-10+11+12/installScript_1012fullapp.
+
+2019.11.01	Update Q7-Update-installScript.
+
+2019.10.10	Update Q7-Update-installScript.
+
+2019.09.11	Update Q6-DownloadFullApp and Q7-Update-installScript for 10.15. 
+
+2019.07.03	Add Q7-Update-installScript/installScript_1015update 
+
+2019.06.22	Update Q3-HFS+UpdateCache/copytempdata 
+
+2019.06.20	Add support to 10.15 Catalina. (EasyMBR-Installer1015)
+
+2019.03.26	Add support to 10.14.4 BaseSystem.dmg. (EasyMBR-Installer1013)
+
+2019.02.13	Update script to make update-installer-dmg on Desktop. (Q7-Update-installScript/installScript_101X)

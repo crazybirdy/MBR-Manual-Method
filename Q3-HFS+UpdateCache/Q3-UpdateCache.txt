@@ -1,0 +1,25 @@
+
+Q3. What's need to do after 10.15 installation.
+A3. 1. Boot to USB Catalina Installer, open Terminal.
+       (Script copytempdata will do that.)
+       Need to remove or rename /Volumes/TargetVolume/private/var/ directory firstly.
+       Need to use ditto to copy some files to root directory secondly.
+
+           mv /Volumes/TargetVolume/private/var /Volumes/TargetVolume/private/var-installer
+           ditto /Volumes/TargetVolume/System/Library/Templates/Data/ /Volumes/TargetVolume/
+
+    2. Boot to Catalina TargetVolume, on -s, single user mode. 
+       (Script hfsupdatecache will do that.)
+       Need to run the following commands to update caches, and it should be used only on -s, single user mode.
+
+           /sbin/mount -uw /
+           update_dyld_shared_cache -force
+           kextcache -i /
+           reboot
+
+-----------------------------------------------------------------------------------------
+https://forums.macrumors.com/threads/catalina-on-hfs-a-howto.2185499/
+https://forums.macrumors.com/threads/catalina-on-hfs-a-howto.2185499/page-3#post-27476598
+https://forums.macrumors.com/threads/catalina-on-hfs-a-howto.2185499/page-3#post-27479705
+https://forums.macrumors.com/threads/catalina-on-hfs-a-howto.2185499/page-3#post-27480115
+-----------------------------------------------------------------------------------------

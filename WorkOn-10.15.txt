@@ -1,0 +1,295 @@
+
+---------------------------------------------------------------------------------------------------------
+
+List of known issues: 10.15
+
+1. Some app-pkg-installers can't install to HFS+, but install to APFS fine.
+
+---------------------------------------------------------------------------------------------------------
+
+This patch can install with DOS MBR partition tables, instead of GUID.
+
+---------------------------------------------------------------------------------------------------------
+
+Use script EasyMBR-Installer1015 to make 10.15 installer.
+Use script EasyMBR-Installer1013 to make 10.13, 10.14 installer.
+
+---------------------------------------------------------------------------------------------------------
+
+What's the difference between createinstallmedia method, MBR-Manual-Method, and MBR-Automatic-Method?
+As the following....
+1. createinstallmedia method, needs stage 1, stage 2 installation process, which is worked with GUID partition only, always convert to APFS format.
+2. MBR-Manual-Method, install via stage 2 manually, which is worked with both MBR and GUID, HFS+ and APFS, will never convert the partition format.
+3. MBR-Automatic-Method, install via stage 2 automatically, which is worked with both MBR and GUID, HFS+ and APFS, will never convert the partition format.
+---------------------------------------------------------------------------------------------------------
+
+What is this MBR-Manual-Method patched OSInstaller doing?
+1. Patch the MBR check, allow macOS 10.13, 10.14, 10.15 installation on MBR HFS+ partition.
+2. No more Firmware check, bypass the error of "An error occurred while verifying firmware".
+3. No more auto-convert to APFS , "ConvertToAPFS=false" is no longer worked with 10.14.
+4. This patched MBR OSInstaller will never convert to APFS, and will always install as HFS+ partition.
+5. This patched MBR OSInstaller method works with both MBR HFS+ and GPT HFS+ partition (GPT+recovery).
+No longer need to set new SMbiosversion, FirmwareFeatures, and FirmwareFeaturesMask with MBR-patch.
+
+Read D. Q/A:
+            Q4. How to patch to work with CPU SSE4.1 only for Mojave?
+            Q6. How to download the full installer app via swscan.apple.com, instead of App Store?
+            Q7. How to update 10.14.x combo-update to MBR and GPT with installScript directly?
+
+---------------------------------------------------------------------------------------------------------
+
+Works under macOS for 10.13, 10.14, 10.15. (10.13 needs SSE4.1 CPU, 10.14, 10.15 needs SSE4.2 CPU, read Q/A Q4 for 10.14 SSE4.1 CPU)
+
+Clover r4940+ boot 10.15 fine.
+Clover r4514+ boot 10.14 fine.
+Clover r4084+ boot 10.13 fine.
+
+        add to /EFI/CLOVER/config.plist as below.
+
+        <key>RtVariables</key>
+        <dict>
+            <key>BooterConfig</key>
+            <string>0x28</string>
+            <key>CsrActiveConfig</key>
+            <string>0x67</string>
+        </dict>
+
+Chameleon Enoch r2922+
+
+        add to /Extra/org.chameleon.Boot.plist as CsrActiveConfig=103 (Hex 0x67:01100111)
+
+        <key>CsrActiveConfig</key>
+        <string>103</string>
+
+        add to /Extra/kernel.plist for kernel patch to load kexts.
+
+        <key>KernelBooter_kexts</key>
+        <string>Yes</string>
+
+Need a SMBIOS supported with BaseSystem.dmg/System/Library/CoreServices/PlatformSupport.plist.
+
+Set a /Extra/SMBIOS.plist with Chameleon Wizard.
+http://www.insanelymac.com/forum/topic/257464-chameleon-wizard-utility-for-chameleon/
+
+---------------------------------------------------------------------------------------------------------
+
+This MBR-Manual-Method is the same as 10.12, need to follow the steps as below.
+
+If it's 10.15, Open    "Install macOS Catalina.app/Contents/SharedSupport/" first, and you will find the files.
+If it's 10.14, Open      "Install macOS Mojave.app/Contents/SharedSupport/" first, and you will find the files.
+If it's 10.13, Open "Install macOS High Sierra.app/Contents/SharedSupport/" first, and you will find the files.
+
+AppleDiagnostics.chunklist
+AppleDiagnostics.dmg
+BaseSystem.chunklist
+BaseSystem.dmg
+InstallESD.dmg
+InstallInfo.plist
+
+You need one partitions:
+Disk1mbrInstaller, minimal size: 7.8 GB, hdd or USB, MBR or GPT, this is MBR-installer boot disk.
+
+Additional tools:
+EasyMBR-InstallerMaker   You can use script EasyMBR-InstallerMaker to make MBR installer automatically.
+                      	(If you boot with Enoch and -f, need to do step A5, A6, after script is finished.)
+
+---------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------
+-------------------------------------- Start to make MBR installer --------------------------------------
+-------------------------------------- Start to make MBR installer --------------------------------------
+-------------------------------------- Start to make MBR installer --------------------------------------
+---------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------
+
+You can use script EasyMBR-InstallerMaker to make MBR installer automatically.
+(If you need to boot with Chameleon Enoch and -f, need to do step A5, A6, after script is finished.)
+
+---------------------------------------------------------------------------------------------------------
+
+Step A. Disk1mbrInstaller
+
+   (Disk1mbrInstaller, minimal size: 7.8 GB, hdd or USB, MBR or GPT.)
+    Make BaseSystem partition to boot the MBR-installer.
+
+A1. Use Disk Utility.app to restore BaseSystem.dmg to HFS partition and rename the partition’s name as Disk1mbrInstaller as /Volumes/Disk1mbrInstaller/
+
+A2. If it's 10.15, copy the files of    "Install macOS Catalina.app/Contents/SharedSupport/" to "/Volumes/Disk1mbrInstaller/" as below.
+    If it's 10.14, copy the files of      "Install macOS Mojave.app/Contents/SharedSupport/" to "/Volumes/Disk1mbrInstaller/" as below.
+    If it's 10.13, copy the files of "Install macOS High Sierra.app/Contents/SharedSupport/" to "/Volumes/Disk1mbrInstaller/" as below.
+
+    /Volumes/Disk1mbrInstaller/AppleDiagnostics.chunklist
+    /Volumes/Disk1mbrInstaller/AppleDiagnostics.dmg
+    /Volumes/Disk1mbrInstaller/BaseSystem.chunklist
+    /Volumes/Disk1mbrInstaller/BaseSystem.dmg
+
+A3. Remove /Volumes/Disk1mbrInstaller/System/Installation/Packages first,
+    make directory of /Volumes/Disk1mbrInstaller/System/Installation/Packages,
+    and copy InstallESD.dmg/Packages/****** to /Volumes/Disk1mbrInstaller/System/Installation/Packages/ as below.
+
+    /Volumes/Disk1mbrInstaller/System/Installation/Packages/Core.pkg
+    /Volumes/Disk1mbrInstaller/System/Installation/Packages/EmbeddedOSFirmware.pkg
+    /Volumes/Disk1mbrInstaller/System/Installation/Packages/FirmwareUpdate.pkg
+    /Volumes/Disk1mbrInstaller/System/Installation/Packages/OSInstall.mpkg
+    /Volumes/Disk1mbrInstaller/System/Installation/Packages/SecureBoot.pkg
+
+A4. Replace the following files, need for 10.13+.
+    /Volumes/Disk1mbrInstaller/System/Installation/CDIS/macOS Installer.app
+    /Volumes/Disk1mbrInstaller/System/Library/Frameworks/Quartz.framework
+    /Volumes/Disk1mbrInstaller/System/Library/Frameworks/QuickLook.framework
+    /Volumes/Disk1mbrInstaller/System/Library/PrivateFrameworks/ChunkingLibrary.framework
+    /Volumes/Disk1mbrInstaller/System/Library/PrivateFrameworks/GenerationalStorage.framework
+    /Volumes/Disk1mbrInstaller/System/Library/PrivateFrameworks/OSInstaller.framework
+
+    And replace the following files, need for 10.15.
+    /Volumes/Disk1mbrInstaller/System/Library/Frameworks/QTKit.framework"
+    /Volumes/Disk1mbrInstaller/System/Library/Frameworks/CoreMedia.framework"
+    /Volumes/Disk1mbrInstaller/System/Library/Frameworks/CoreMediaIO.framework"
+    /Volumes/Disk1mbrInstaller/System/Library/Frameworks/MediaToolbox.framework"
+    /Volumes/Disk1mbrInstaller/System/Library/PrivateFrameworks/CoreAUC.framework"
+    /Volumes/Disk1mbrInstaller/System/Library/PrivateFrameworks/CoreMediaAuthoring.framework"
+
+    And remove the following file, need for 10.15.
+    /Volumes/Disk1mbrInstaller/System/Library/PrivateFrameworks/MediaExperience.framework"
+
+    And copy the following files, need for 10.15.
+    /Volumes/Disk1mbrInstaller/System/Applications/Utilities/ to /Volumes/Disk1mbrInstaller/Applications/Utilities/
+
+    Also Replace the following tiff file if you want to make it look better.(it's not necessary)
+
+    copy
+         (If it's 10.15)    Install macOS Catalina.app/Contents/Resources/ProductPageIcon_256x256.tiff
+         (If it's 10.14)      Install macOS Mojave.app/Contents/Resources/ProductPageIcon_256x256.tiff
+         (If it's 10.13) Install macOS High Sierra.app/Contents/Resources/ProductPageIcon_256x256.tiff
+    to
+         /Volumes/Disk1mbrInstaller/System/Installation/CDIS/macOS Installer.app/Contents/Resources/X.tiff
+
+
+A5. (Needn't with Clover, Need only if you use Chameleon with -f to boot Disk1mbrInstaller, use Pacifist v3.2.14+ to access Core.pkg.)
+    Make directory of /Volumes/Disk1mbrInstaller/System/Library/Kernels first.
+    Copy InstallESD.dmg/Packages/Core.pkg/System/Library/Kernels/kernel to /Volumes/Disk1mbrInstaller/System/Library/Kernels/kernel
+
+A6. (Needn't with Clover, Need only if you use Chameleon with -f to boot Disk1mbrInstaller, use Pacifist v3.2.14+ to access Core.pkg.)
+    Replace InstallESD.dmg/Packages/Core.pkg/System/Library/Extensions to /Volumes/Disk1mbrInstaller/System/Library/Extensions
+
+    Remove the graphics kexts as below if you can’t boot to the installer GUI with graphics card issue.
+    /Volumes/Disk1mbrInstaller/System/Library/Extensions/AMD*
+    /Volumes/Disk1mbrInstaller/System/Library/Extensions/ATI*
+    /Volumes/Disk1mbrInstaller/System/Library/Extensions/AppleIntelBDW*
+    /Volumes/Disk1mbrInstaller/System/Library/Extensions/AppleIntelCPU*
+    /Volumes/Disk1mbrInstaller/System/Library/Extensions/AppleIntelFramebuffer*
+    /Volumes/Disk1mbrInstaller/System/Library/Extensions/AppleIntelHD*
+    /Volumes/Disk1mbrInstaller/System/Library/Extensions/AppleIntelHSW*
+    /Volumes/Disk1mbrInstaller/System/Library/Extensions/AppleIntelIVB*
+    /Volumes/Disk1mbrInstaller/System/Library/Extensions/AppleIntelKBL*
+    /Volumes/Disk1mbrInstaller/System/Library/Extensions/AppleIntelSKL*
+    /Volumes/Disk1mbrInstaller/System/Library/Extensions/AppleIntelSNB*
+    /Volumes/Disk1mbrInstaller/System/Library/Extensions/NVDA*
+    /Volumes/Disk1mbrInstaller/System/Library/Extensions/GeForce*
+
+A7. Done for Disk1mbrInstaller.
+
+---------------------------------------------------------------------------------------------------------
+
+Step B. Q/A
+
+Q1. Is this patched MBR OSInstaller only used for MBR? Does it work for GPT?
+    How to stop converting to APFS automatically during installation?
+A1. This patched MBR OSInstaller method works with both MBR and GPT partition (GPT+recovery).
+    This MBR-Manual-Method will never convert to APFS.
+
+Q2. How does this MBR-Manual-Method work?
+A2. This MBR-Manual-Method works as same as 10.12 BaseSystem.dmg method.
+    Install via stage 2 manually, which is worked with both MBR and GUID, HFS+ and APFS, will never convert the partition format.
+    We can manually format as MBR or GPT, HFS+ or APFS on installation screen like as 10.12.
+    We can manually select MBR HFS+ partition to install 10.13 and 10.14 on installation screen now.
+    Needn't to update the MBR-Manual-Method files, it will still work on 10.13, and 10.14 future versions, I think so. 
+
+Q3. What's need to do after 10.15 installation.
+A3. 1. Boot to USB Catalina Installer, open Terminal.
+       (Script copytempdata will do that.)
+       Need to remove or rename /Volumes/TargetVolume/private/var/ directory firstly.
+       Need to use ditto to copy some files to root directory secondly.
+
+           mv /Volumes/TargetVolume/private/var/ /Volumes/TargetVolume/private/var-installer
+           ditto /Volumes/TargetVolume/System/Library/Templates/Data/ /Volumes/TargetVolume/
+
+    2. Boot to Catalina TargetVolume, on -s, single user mode. 
+       (Script hfsupdatecache will do that.)
+       Need to run the following commands to update caches, and it should be used only on -s, single user mode.
+
+           /sbin/mount -uw /
+           update_dyld_shared_cache -force
+           kextcache -i /
+           reboot
+
+Q4. How to patch to work with CPU SSE4.1 only for Mojave?
+A4. 10.14 Mojave native needs SSE4.2 CPU, if you use Core2 Duo CPU with SSE4.1, without SSE4.2, like as E8400.
+    You need to replace /System/Library/UserEventPlugins/com.apple.telemetry.plugin from 10.13.x.
+
+    Or
+    Patch 10.14.db3 with following code. Of course you need to copy it to desktop, patch it, and copy it back to the location.
+
+    10.14 db1 18A293u ~ db5 18A347e
+    perl -pi -e 's|\x28\x07\x00\x00\x85|\xC8\x06\x00\x00\x85|g' com.apple.telemetry.plugin﻿/Contents/MacOS/com.apple.telemetry
+
+    10.14 db6 18A353d
+    perl -pi -e 's|\xD8\x06\x00\x00\x85|\xC8\x06\x00\x00\x85|g' com.apple.telemetry.plugin﻿/Contents/MacOS/com.apple.telemetry
+
+    Or
+    Use script Q4-mojave2core/mojave2core to patch it automatically.
+
+Q5. Have the problem of "Still waiting for root device", "disk1:I/O error", "hot-plug didn’t work" for ICH10 ?
+A5. patch the AppleAHCIPort.kext (10.13, 10.14)
+    For this we need two binary patches.
+    First patch fix "Still waiting for root device", "disk1:I/O error" for ICH10: (Need only for 10.13, not need for 10.14)
+           Find    4585F60F 95C289C8 83E0FE66 85C9780F 84D2750B 
+           Replace 89C883E0 FE6685C9 0F98C141 08CC9090 9090750B 
+    Second patch will work hot-plug: (Need for both 10.13 and 10.14)
+           Find    89C82540 6002003D 40200000 750C81E1 BF7FFFFF 898B5101 0000
+           Replace 90909090 90909090 90909090 90909090 90909090 90909090 9090
+    http://www.insanelymac.com/forum/topic/327488-macos-high-sierra-final-release-is-out-17a365/?p=2505086
+
+Q6. How to download the full installer app via swscan.apple.com, instead of App Store?
+A6. Some people download installer app from App Store, and get only 18 MB size, not the complete installer app (5.68 GB).
+    You should boot to 10.12, or 10.13 to download it again from App Store, 
+
+    Or
+    use script Q6-DownloadFullApp/installScript_101Xfullapp to download the full installer app via swscan.apple.com.
+
+Q7. How to update 10.13.x, 10.14.x combo-update to MBR and GPT with installScript directly?
+A7. Use script Q7-Update-installScript/installScript_1013 to install update directly.
+    Use script Q7-Update-installScript/installScript_1014 to install update directly.
+    Update macOS 10.13.x, 10.14.x, works fine with both GPT and MBR, and MBR will not update Recovery HD partition.
+
+    http://www.insanelymac.com/forum/topic/330364-macos-high-sierra-10132-update-released/?p=2546218
+    After updating finished and reboot, Safari and App Store will stop connecting to the internet.
+    To fix this, need to run the following code in Terminal, and reboot after finished:
+
+    sudo update_dyld_shared_cache -force
+
+Q8. Have problem to install Clover pkg to write boot0 to MBR boot disk with 10.14?
+A8. Clover r4541+ pkg - removed the fdisk440 32bit, which is no more supported on 10.14.
+                        It seems can't write boot0 to MBR boot disk with 10.14 now.
+
+    Clover r4541+ pkg - Writing boot0af to /dev/disk0 with Mojave.(can't write boot0, fdisk440 32bit is no more supported.)
+    Clover r4640+ pkg - Writing boot0af to /dev/disk0 with Mojave.(fix with dd instead of fdisk440.)
+
+    If you can’t get Clover bootloader boot on MBR (boot0 didn’t work),
+    you should install Clover r4540- pkg first, then install the latest version of Clover later.
+
+---------------------------------------------------------------------------------------------------------
+
+OSInstaller patch is made 
+base on 落下爱@pcbeta 10.10.x MBR patch method, and more patch for 10.14 by crazybirdy.
+
+This MBR-Manual-Method is refer to dosdude1's work as http://dosdude1.com/mojave/, credit to dosdude1.
+
+---------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------
+---------------------------------------------------------------------------------------------------------

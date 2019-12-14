@@ -1,0 +1,131 @@
+#!/bin/bash
+
+#
+# This script is refer to SunKi's work as follow.                                by crazybirdy. 20180810
+#
+# http://www.insanelymac.com/forum/topic/327488-macos-high-sierra-final-release-is-out-17a365/?p=2505086
+#
+
+printf '\033[8;35;120t'
+if [[ -f "/usr/bin/clear" ]]; then
+	clear
+fi
+
+function ich10patch() {
+	echo
+	echo "Patch AppleAHCIPort.kext for ICH10 error as 'hot-plug', 'Still waiting for root device', 'disk1:I/O error'."
+	echo
+	echo "Available target volumes:"
+	echo
+	cd /Volumes
+	AllVolumes=(*)
+	indexA=0
+	index=0
+	for volume in "${AllVolumes[@]}"
+	do
+		targetforVolume="/Volumes/$volume"
+		if [[ -f "$targetforVolume/System/Library/CoreServices/SystemVersion.plist" ]]; then
+			ProductBuildVersion=`cat "$targetforVolume/System/Library/CoreServices/SystemVersion.plist" | grep -A 1 "ProductBuildVersion" | grep string | sed 's/<string>//' | sed 's/<\/string>//' | awk '{print $1;}' `
+			ProductVersion=`cat "$targetforVolume/System/Library/CoreServices/SystemVersion.plist" | grep -A 1 "ProductVersion" | grep string | sed 's/<string>//' | sed 's/<\/string>//' | awk '{print $1;}' `
+			SelectVersion=`echo $ProductVersion | sed 's/.\{5\}/& /g' | awk '{print $1;}' `
+			if [[ $SelectVersion > 10.12 ]]; then
+				if [[ -f "$targetforVolume/System/Library/Extensions/AppleAHCIPort.kext/Contents/MacOS/AppleAHCIPort" ]]; then
+					AtlistVolume[$indexA]="$targetforVolume"
+					OSVersion[$indexA]="$ProductVersion"
+					OSBuildVersion[$indexA]="$ProductBuildVersion"					
+					echo "[ $indexA ] ${AtlistVolume[$indexA]} ......... $ProductVersion $ProductBuildVersion"
+					let indexA++
+				fi
+			fi
+		fi
+		let index++
+	done
+
+	echo 
+	read -p "Select the AppleAHCIPort partition: " VolumeNumber
+	if [[ ! ${AtlistVolume[$VolumeNumber]} ]]; then
+		echo
+		echo "Error!!!"
+		echo
+		echo "Please select right target volume to update."
+		echo
+		exit 0
+	fi
+	targetVolume="${AtlistVolume[$VolumeNumber]}"
+
+		echo "                                   [ $VolumeNumber ] $targetVolume ......... ${OSVersion[$VolumeNumber]} ${OSBuildVersion[$VolumeNumber]}"
+		echo
+
+		read -p "The target volume is selected, is it right? (y/n) " targetyesno
+		case "$targetyesno" in
+			y|Y)
+				echo
+			;;
+			*)
+				echo
+				echo "Error!!!"
+				echo
+				echo "The selected target volume is not right."
+				echo
+				exit 0
+			;;
+		esac
+
+	odbin="/usr/bin/od"
+	diffbin="/usr/bin/diff"
+	if [[ ! -f "/usr/bin/od" ]]; then
+		odbin="${targetVolume}/usr/bin/od"
+		diffbin="${targetVolume}/usr/bin/diff"
+	fi
+
+	echo
+	echo "${targetVolume}/System/Library/Extensions/AppleAHCIPort.kext/Contents/MacOS/AppleAHCIPort"
+	echo
+
+	AppleAHCIPortbin="${targetVolume}/System/Library/Extensions/AppleAHCIPort.kext/Contents/MacOS/AppleAHCIPort"
+
+	cp "${AppleAHCIPortbin}" "${AppleAHCIPortbin}-org"
+
+	echo "First patch fix work 'hot-plug': (Need for both 10.13 and 10.14)"
+	echo
+	echo "Find ...... 89C82540 6002003D 40200000 750C81E1 BF7FFFFF 898B5101 0000"
+	echo "Replace ... 90909090 90909090 90909090 90909090 90909090 90909090 9090"
+	echo
+
+	perl -pi -e 's|\x89\xC8\x25\x40\x60\x02\x00\x3D\x40\x20\x00\x00\x75\x0C\x81\xE1\xBF\x7F\xFF\xFF\x89\x8B\x51\x01\x00\x00|\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90|g' "${AppleAHCIPortbin}"
+
+	echo "Second patch fix 'Still waiting for root device', 'disk1:I/O error': (Need only for 10.13, needn't for 10.14)"
+	echo
+	echo "Find ...... 4585F60F 95C289C8 83E0FE66 85C9780F 84D2750B"
+	echo "Replace ... 89C883E0 FE6685C9 0F98C141 08CC9090 9090750B"
+	echo
+	perl -pi -e 's|\x45\x85\xF6\x0F\x95\xC2\x89\xC8\x83\xE0\xFE\x66\x85\xC9\x78\x0F\x84\xD2\x75\x0B|\x89\xC8\x83\xE0\xFE\x66\x85\xC9\x0F\x98\xC1\x41\x08\xCC\x90\x90\x90\x90\x75\x0B|g' "${AppleAHCIPortbin}"
+
+	echo
+	echo "Patching diff:"
+	echo
+	${diffbin} <(${odbin} -An -tx1 -v "${AppleAHCIPortbin}-org") <(${odbin} -An -tx1 -v "${AppleAHCIPortbin}")
+	echo
+	echo "Auto patch is done."
+	echo
+
+	rm -f "${AppleAHCIPortbin}-org"
+}
+
+if [[ -f "/usr/bin/whoami" ]]; then
+	username=`whoami`
+fi
+echo
+echo "User = $username"
+
+if [[ "$username" == root ]]; then
+	ich10patch
+elif [[ "$username" == "" ]]; then
+	ich10patch
+elif [[ ! "$username" == root ]]; then
+	echo 
+	echo "This script must be run as root!"
+	sudo "$0"
+fi
+
+exit 0

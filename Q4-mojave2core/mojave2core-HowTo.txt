@@ -1,0 +1,69 @@
+
+------------------------------------------------------------------------------------------------------------------
+
+How to patch to work with Mojave telemetry for Core2 Duo CPU with only SSE4.1, without SSE4.2, like as CPU E8400,
+after installation or update when you get reboot error.
+
+------------------------------------------------------------------------------------------------------------------
+Work on Mojave system partition:
+------------------------------------------------------------------------------------------------------------------
+
+1. Put it in /usr/bin/ as /usr/bin/mojave2core (before you start to update new version.)
+2. Clover boot to single user mode with -s
+
+Terminal command:
+
+3. /sbin/mount -uw /
+4. mojave2core
+
+5. If it didn't work, you need to make it executable first.
+   chmod +x /usr/bin/mojave2core
+   mojave2core
+
+6. done.
+
+It works fine with 10.14 db1 ~ db7, and future version.
+
+------------------------------------------------------------------------------------------------------------------
+Work on Mojave installer partition:
+------------------------------------------------------------------------------------------------------------------
+
+Windows:
+copy it to mac installer partition/mojave2core
+
+Clover:
+boot to mac installer partition.
+
+Terminal commands:
+cp /mojave2core /Volumes/1014name/usr/bin/mojave2core
+chmod +x /Volumes/1014name/usr/bin/mojave2core
+/Volumes/1014name/usr/bin/mojave2core
+
+done. ﻿
+
+1014name is your 10.14 volume name. 
+It's better to use single volume name as "Mojave" instead of "macOS Mojave" for Terminal commands.
+
+------------------------------------------------------------------------------------------------------------------
+
+If you still can’t get it work, you can replace it from 10.13.6. (telemetry-10136.zip)
+
+/System/Library/UserEventPlugins/com.apple.telemetry.plugin
+
+------------------------------------------------------------------------------------------------------------------
+
+#
+# This script is refer to Pavo's work as follow.                                           by crazybirdy. 20180712
+#
+# found patch code of com.apple.telemetry.plugin is credit to Pavo.
+# https://www.insanelymac.com/forum/topic/334596-pre-release-macos-mojave/?do=findComment&comment=2624931
+# https://www.insanelymac.com/forum/topic/334898-pre-release-macos-mojave/?do=findComment&comment=2624961
+#
+# found UserEventPlugins is credit to ASentientBot at post#1683.
+# https://forums.macrumors.com/threads/macos-10-14-mojave-on-unsupported-macs-thread.2121473/page-68#post-26222082
+#
+# found com.apple.telemetry.plugin is credit to jackluke at post#1761.
+# https://forums.macrumors.com/threads/macos-10-14-mojave-on-unsupported-macs-thread.2121473/page-71#post-26222642
+#
+
+------------------------------------------------------------------------------------------------------------------

@@ -1,0 +1,210 @@
+#!/bin/bash
+
+# copyright 2019 crazybirdy. ver 2019.06.25
+
+printred() {
+  printf "\e[1;31m${1}\e[0m"
+}
+printgreen() {
+  printf "\e[1;32m${1}\e[0m"
+}
+printyellow() {
+  printf "\e[1;33m${1}\e[0m"
+}
+printblue() {
+  printf "\e[1;34m${1}\e[0m"
+}
+printpurple() {
+  printf "\e[1;35m${1}\e[0m"
+}
+printLatest() {
+  printf "\e[1;31m${1}\e[0m"
+}
+printf '\033[8;35;160t'
+if [[ -f "/usr/bin/clear" ]]; then
+	clear
+fi
+
+function selectvolume() {
+	echo
+	echo "This script will run the following commands to setup the 10.15 system partition with /System/Library/Templates/Data."
+	echo
+	echo "cp /usr/bin/hfsupdatecache /Volumes/TargetVolume/usr/bin/hfsupdatecache"
+	echo "mv /Volumes/TargetVolume/private/var /Volumes/TargetVolume/private/var-installer"
+	echo "ditto /Volumes/TargetVolume/System/Library/Templates/Data/ /Volumes/TargetVolume/"
+	echo
+	echo "Available target volumes:"
+	echo
+	cd /Volumes
+	AllVolumes=(*)
+	indexA=0
+	for volume in "${AllVolumes[@]}"
+	do
+		targetforVolume="/Volumes/$volume"
+		if [[ -d "$targetforVolume/System/Library/Templates/Data" ]]; then
+			ProductBuildVersion=`cat "$targetforVolume/System/Library/CoreServices/SystemVersion.plist" | grep -A 1 "ProductBuildVersion" | grep string | sed 's/<string>//' | sed 's/<\/string>//' | awk '{print $1;}' `
+			ProductVersion=`cat "$targetforVolume/System/Library/CoreServices/SystemVersion.plist" | grep -A 1 "ProductVersion" | grep string | sed 's/<string>//' | sed 's/<\/string>//' | awk '{print $1;}' `
+			SelectVersion=`echo $ProductVersion | sed 's/.\{5\}/& /g' | awk '{print $1;}' `
+			if [[ ! -d "$targetforVolume/private/etc/defaults" ]]; then
+				AtlistVolume[$indexA]="$targetforVolume"
+				OSVersion[$indexA]="$ProductVersion"
+				OSBuildVersion[$indexA]="$ProductBuildVersion"					
+				echo "[ $indexA ] ${AtlistVolume[$indexA]} ......... $ProductVersion $ProductBuildVersion"
+				let indexA++
+			fi
+		fi
+	done
+	echo 
+	read -p "Select one target volume: " VolumeNumber
+	if [[ ! ${AtlistVolume[$VolumeNumber]} ]]; then
+		echo
+		echo "Error!!!"
+		echo
+		echo "Please select right target volume to update."
+		echo
+		exit 0
+	fi
+	TargetVolume="${AtlistVolume[$VolumeNumber]}"
+    ProductBuildVersion=`cat "$TargetVolume/System/Library/CoreServices/SystemVersion.plist" | grep -A 1 "ProductBuildVersion" | grep string | sed 's/<string>//' | sed 's/<\/string>//' | awk '{print $1;}' `
+    ProductVersion=`cat "$TargetVolume/System/Library/CoreServices/SystemVersion.plist" | grep -A 1 "ProductVersion" | grep string | sed 's/<string>//' | sed 's/<\/string>//' | awk '{print $1;}' `
+
+	echo "                        [ $VolumeNumber ] $TargetVolume ......... $ProductVersion $ProductBuildVersion"
+	echo
+	read -p "The target volume is selected, is it right? (y/n) " targetyesno
+	case "$targetyesno" in
+		y|Y)
+			echo
+		;;
+		*)
+			echo
+			echo "Error!!!"
+			echo
+			echo "The selected target volume is not right."
+			echo
+			exit 0
+		;;
+	esac
+	read -rsp $"Press any key to copy Templates Data .... " -n1 key
+	echo
+}
+function telemetrypatch() {
+	cputype=`sysctl -a | grep cpu.brand_string | sed 's/machdep.cpu.brand_string: //' `
+	cpusse=`sysctl -a | grep cpu.features | sed 's/machdep.cpu.features: //' `
+	cpusse41=`sysctl -a | grep cpu.features | sed 's/machdep.cpu.features: //' | grep SSE4.1 `
+	cpusse42=`sysctl -a | grep cpu.features | sed 's/machdep.cpu.features: //' | grep SSE4.2 `
+	if [[ "${cpusse41}" == "" ]]; then
+		patchyesno="N"
+	elif [[ "${cpusse42}" == "" ]]; then
+		patchyesno="Y"
+	elif [[ ! "${cpusse42}" == "" ]]; then
+		patchyesno="N"
+	fi
+	case "$patchyesno" in
+		y|Y)
+			echo
+			printblue "${cputype}\n"
+			printred "${cpusse}\n"
+			echo
+			echo "Your CPU isn't supported SSE4.2, need to patch telemetry."
+			echo
+			echo "Patch telemetry for Core2 Duo CPU with only SSE4.1, without SSE4.2, like as CPU E8400."
+			echo
+			echo "${TargetVolume}/System/Library/UserEventPlugins/com.apple.telemetry.plugin/Contents/MacOS/com.apple.telemetry"
+			echo
+			telemetrypluginbin="${TargetVolume}/System/Library/UserEventPlugins/com.apple.telemetry.plugin/Contents/MacOS/com.apple.telemetry"
+			cp "${telemetrypluginbin}" "${telemetrypluginbin}-org"
+			odbin="/usr/bin/od"
+			diffbin="/usr/bin/diff"
+			if [[ ! -f "/usr/bin/od" ]]; then
+				odbin="${TargetVolume}/usr/bin/od"
+				diffbin="${TargetVolume}/usr/bin/diff"
+			fi
+			code1=`${odbin} -An -tx1 -v "${telemetrypluginbin}" | awk NR==2 | awk '{print $1;}' `
+			code2=`${odbin} -An -tx1 -v "${telemetrypluginbin}" | awk NR==2 | awk '{print $2;}' `
+			code3=`${odbin} -An -tx1 -v "${telemetrypluginbin}" | awk NR==2 | awk '{print $3;}' `
+			code4=`${odbin} -An -tx1 -v "${telemetrypluginbin}" | awk NR==2 | awk '{print $4;}' `
+			code5=`${odbin} -An -tx1 -v "${telemetrypluginbin}" | awk NR==2 | awk '{print $5;}' `
+			code6=`${odbin} -An -tx1 -v "${telemetrypluginbin}" | awk NR==2 | awk '{print $6;}' `
+			code7=`${odbin} -An -tx1 -v "${telemetrypluginbin}" | awk NR==2 | awk '{print $7;}' `
+			code8=`${odbin} -An -tx1 -v "${telemetrypluginbin}" | awk NR==2 | awk '{print $8;}' `
+			code9=`${odbin} -An -tx1 -v "${telemetrypluginbin}" | awk NR==2 | awk '{print $9;}' `
+			code10=`${odbin} -An -tx1 -v "${telemetrypluginbin}" | awk NR==2 | awk '{print $10;}' `
+			code11=`${odbin} -An -tx1 -v "${telemetrypluginbin}" | awk NR==2 | awk '{print $11;}' `
+			code12=`${odbin} -An -tx1 -v "${telemetrypluginbin}" | awk NR==2 | awk '{print $12;}' `
+			echo "Find ...... $code1 $code2 $code3 $code4 $code5 $code6 $code7 $code8 $code9 $code10 $code11 $code12"
+			echo "Replace ... $code1 $code2 $code3 $code4 c8 06 $code7 $code8 $code9 $code10 $code11 $code12"
+			perl -pi -e "s|\x$code1\x$code2\x$code3\x$code4\x$code5\x$code6\x$code7\x$code8\x$code9\x$code10\x$code11\x$code12|\x$code1\x$code2\x$code3\x$code4\xC8\x06\x$code7\x$code8\x$code9\x$code10\x$code11\x$code12|g" "${telemetrypluginbin}"
+			echo
+			${diffbin} <(${odbin} -An -tx1 -v "${telemetrypluginbin}-org") <(${odbin} -An -tx1 -v "${telemetrypluginbin}")
+			echo
+			rm -f "${telemetrypluginbin}-org"
+			scriptpath=`echo $0`
+			scriptdirpath=${scriptpath%%'/copytempdata'*}
+			if [[ -f "$scriptdirpath/../Q4-mojave2core/mojave2core" ]]; then
+				cp -fv "$scriptdirpath/../Q4-mojave2core/mojave2core" "$TargetVolume/usr/bin/mojave2core"
+			elif [[ -f "/usr/bin/mojave2core" ]]; then
+				cp -fv "/usr/bin/mojave2core" "$TargetVolume/usr/bin/mojave2core"
+			fi
+		;;
+		*)
+			echo
+		;;
+	esac
+}
+function copyuserdata() {
+	scriptpath=`echo $0`
+	scriptdirpath=${scriptpath%%'/copytempdata'*}
+	if [[ -f "$scriptdirpath/hfsupdatecache" ]]; then
+		cp -fv "$scriptdirpath/hfsupdatecache" "$TargetVolume/usr/bin/hfsupdatecache"
+	fi
+	if [[ -e "$TargetVolume/private/var/db" ]]; then
+		chmod -R +rwx "$TargetVolume/private/var/db"
+		echo "mv $TargetVolume/private/var $TargetVolume/private/var-installer"
+		mv "$TargetVolume/private/var" "$TargetVolume/private/var-installer"
+	fi
+	if [[ -e "$TargetVolume/System/Library/Templates/Data/Device" ]]; then
+		#10.15.db1.19A471t
+		echo "ditto $TargetVolume/System/Library/Templates/Data/Device/ $TargetVolume/"
+		ditto "$TargetVolume/System/Library/Templates/Data/Device/" "$TargetVolume/"
+	else
+		#10.15.db2.19A487l+
+		echo "ditto $TargetVolume/System/Library/Templates/Data/ $TargetVolume/"
+		ditto "$TargetVolume/System/Library/Templates/Data/" "$TargetVolume/"
+	fi
+	echo
+	printf "Finished. Now you can reboot to \e[1;31m${TargetVolume}\e[0m to update caches on \e[1;31m-s\e[0m, \e[1;31msingle user mode\e[0m, and run the following command.\n"
+	printf "\e[1;34mhfsupdatecache\e[0m\n"
+	echo
+	read -rsp $"Press any key to reboot .... " -n1 key
+	echo
+	reboot
+}
+
+if [[ -f "/usr/bin/whoami" ]]; then
+	username=`whoami`
+fi
+echo
+echo "User = $username"
+
+if [[ "$username" == root ]]; then
+	selectvolume
+	telemetrypatch
+	copyuserdata
+elif [[ "$username" == "" ]]; then
+	selectvolume
+	telemetrypatch
+	copyuserdata
+elif [[ ! "$username" == root ]]; then
+	echo
+	echo "This script will run the following commands to setup the 10.15 System partition with /System/Library/Templates/Data."
+	echo
+	echo "cp /usr/bin/hfsupdatecache /Volumes/TargetVolume/usr/bin/hfsupdatecache"
+	echo "mv /Volumes/TargetVolume/private/var /Volumes/TargetVolume/private/var-installer"
+	echo "ditto /Volumes/TargetVolume/System/Library/Templates/Data/ /Volumes/TargetVolume/"
+	echo
+	echo "This script must be run as root!"
+	sudo "$0"
+fi
+
+echo
+exit

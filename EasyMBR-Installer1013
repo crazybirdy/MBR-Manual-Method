@@ -1,0 +1,580 @@
+#!/bin/sh
+printf '\033[8;60;180t'
+clear
+
+LocalScriptVer="v1.0.1"
+RemoteScriptVer=""
+RemoteScriptPath="https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master"
+LocateScriptPath="$HOME/MBR-Manual-Method"
+ScriptName="EasyMBR-Installer1013"
+
+FileNameArray=(
+	Changlog.txt
+	EasyMBR-Install1013.gif
+	EasyMBR-Install1015.gif
+	EasyMBR-Installer1013
+	EasyMBR-Installer1015
+	MBR-Manual-Method.txt
+	Q3-HFS+UpdateCache/copytempdata
+	Q3-HFS+UpdateCache/hfsupdatecache
+	Q3-HFS+UpdateCache/Q3-UpdateCache.txt
+	Q4-mojave2core/mojave2core
+	Q4-mojave2core/mojave2core-HowTo.txt
+	Q4-mojave2core/mojave2core-telemetry.png
+	Q4-mojave2core/SSE4.2_emulation/AAAMouSSE-kext.zip
+	Q4-mojave2core/SSE4.2_emulation/README.txt
+	Q4-mojave2core/telemetry-10136.zip
+	Q5-AppleAHCIPort/ich10fix
+	Q5-AppleAHCIPort/ich10fix-HowTo.txt
+	Q6-DownloadFullApp/installScript_1013fullapp
+	Q6-DownloadFullApp/installScript_1014fullapp
+	Q6-DownloadFullApp/installScript_1015fullapp
+	Q6-DownloadFullApp/installScript_allfullapp
+	Q6-DownloadFullApp/installScript_fullapp.gif
+	Q6-DownloadFullApp/installScript_fullapp.png
+	Q7-Update-installScript/dm
+	Q7-Update-installScript/HowToUpdate-10.15.pdf
+	Q7-Update-installScript/installScript_1013update
+	Q7-Update-installScript/installScript_1014update
+	Q7-Update-installScript/installScript_1015update
+	README.md
+	Readme10.13+10.14.pdf
+	Readme10.15.pdf
+	RunMe
+	System.tar.gz
+	System1015.tar.gz
+	WorkOn-10.13-10.14.txt
+	WorkOn-10.15.txt
+	)
+function fixpermission() {
+  FileNameArray=(
+    EasyMBR-Installer1013
+    EasyMBR-Installer1015
+    RunMe
+    Old-macOS-10+11+12/installScript_1012fullapp
+    Q3-HFS+UpdateCache/copytempdata
+    Q3-HFS+UpdateCache/hfsupdatecache
+    Q4-mojave2core/mojave2core
+    Q5-AppleAHCIPort/ich10fix
+    Q6-DownloadFullApp/installScript_1013fullapp
+    Q6-DownloadFullApp/installScript_1014fullapp
+    Q6-DownloadFullApp/installScript_1015fullapp
+    Q6-DownloadFullApp/installScript_allfullapp
+    Q7-Update-installScript/dm
+    Q7-Update-installScript/installScript_1013update
+    Q7-Update-installScript/installScript_1014update
+    Q7-Update-installScript/installScript_1015update
+    )
+  let index=0
+  for filename in "${FileNameArray[@]}"; do
+    if [[ -f "$HOME/MBR-Manual-Method/${filename}" ]]; then
+      chmod +x "$HOME/MBR-Manual-Method/${filename}"
+    fi
+    let index++
+  done
+}
+autodownload() {
+if [[ ! -d "${LocateScriptPath}" ]]; then
+  mkdir -p "${LocateScriptPath}"
+fi
+if [[ ! -d "${LocateScriptPath}/Q3-HFS+UpdateCache" ]]; then
+  mkdir -p "${LocateScriptPath}/Q3-HFS+UpdateCache"
+fi
+if [[ ! -d "${LocateScriptPath}/Q4-mojave2core/SSE4.2_emulation" ]]; then
+  mkdir -p "${LocateScriptPath}/Q4-mojave2core/SSE4.2_emulation"
+fi
+if [[ ! -d "${LocateScriptPath}/Q5-AppleAHCIPort" ]]; then
+  mkdir -p "${LocateScriptPath}/Q5-AppleAHCIPort"
+fi
+if [[ ! -d "${LocateScriptPath}/Q6-DownloadFullApp" ]]; then
+  mkdir -p "${LocateScriptPath}/Q6-DownloadFullApp"
+fi
+if [[ ! -d "${LocateScriptPath}/Q7-Update-installScript" ]]; then
+  mkdir -p "${LocateScriptPath}/Q7-Update-installScript"
+fi
+echo
+let index=0
+for filename in "${FileNameArray[@]}"; do
+  if [[ ! -f "${LocateScriptPath}/${filename}" ]]; then
+    echo "Downloading: ${filename} ..."
+    curl "${RemoteScriptPath}/${filename}" -o "${LocateScriptPath}/${filename}" 2>/dev/null
+  fi
+  let index++
+done
+cd "${LocateScriptPath}"
+rm -rf System
+rm -rf System1015
+tar zxvf System.tar.gz 2>/dev/null
+tar zxvf System1015.tar.gz 2>/dev/null
+fixpermission
+open "${LocateScriptPath}"
+echo
+if [[ ! -f "${LocateScriptPath}/${ScriptName}" ]]; then
+  cat "$0" > "${LocateScriptPath}/${ScriptName}"
+  chmod +x "${LocateScriptPath}/${ScriptName}"
+  exec "${LocateScriptPath}/${ScriptName}"
+fi
+}
+selfUpdate() {
+  echo
+  cat "/private/tmp/${ScriptName}" > "${LocateScriptPath}/${ScriptName}"
+  rm -f "/private/tmp/${ScriptName}"
+  chmod +x "${LocateScriptPath}/${ScriptName}"
+  open "${LocateScriptPath}"
+  exec "${LocateScriptPath}/${ScriptName}"
+}
+IsNumericOnly() {
+  [[ "${1}" =~ ^-?[0-9]+$ ]] && return 0 || return 1
+}
+updatescript() {
+  autodownload
+  rm -f "/private/tmp/${ScriptName}"
+  curl "${RemoteScriptPath}/${ScriptName}" -o "/private/tmp/${ScriptName}" 2>/dev/null
+
+  RemoteScriptVer=$( cat /private/tmp/${ScriptName} | grep 'LocalScriptVer="v' | grep -v grep | tr -cd '.0-9' )
+  LVALUE=$( echo $LocalScriptVer | tr -cd [:digit:] )
+  RVALUE=$( echo $RemoteScriptVer | tr -cd [:digit:] )
+
+  echo
+  if IsNumericOnly $RVALUE; then
+    [[ $LVALUE -eq $RVALUE ]] && printf "\e[1;34mLocal: ${LocalScriptVer}  ..  Remote: v${RemoteScriptVer}\e[1;32m%*s\e[0m" $((40-${#LocalScriptVer})) "No update available."
+    [[ $LVALUE -gt $RVALUE ]] && printf "\e[1;34mLocal: ${LocalScriptVer}  ..  Remote: v${RemoteScriptVer}\e[1;31m%*s\e[0m" $((40-${#LocalScriptVer})) "Wow, are you coming from the future?"
+    [[ $LVALUE -lt $RVALUE ]] && printf "\e[1;34mLocal: ${LocalScriptVer}  ..  Remote: v${RemoteScriptVer}\e[1;5;34m%*s\e[0m" $((40-${#LocalScriptVer})) "Update available (v$RemoteScriptVer)" && selfUpdate 
+  else
+    printf "${LocalScriptVer}\e[1;31m\n%s\e[0m" "Remote version unavailable due to unknown reasons!"
+  fi
+  rm -f "/private/tmp/${ScriptName}"
+  clear
+}
+
+# copyright 2019 crazybirdy. ver 2019.06.25
+# This MBR-Manual-Method is refer to dosdude1's work as http://dosdude1.com/mojave/, credit to dosdude1.
+
+title="macOS MBR installer maker"
+printf "\033]0;%s\007" "$title"
+printf '\033[8;60;180t'
+clear
+
+function makembrInstaller()
+{
+	if [[ -d "/Volumes/macOS Base System/" ]]; then
+		echo 
+		echo "正在卸載 /Volumes/macOS Base System/"
+		echo "Unmounting /Volumes/macOS Base System/"
+		diskutil eject "/Volumes/macOS Base System/"
+		rm -rf "/Volumes/macOS Base System/"
+	fi
+	if [[ -d "/Volumes/OS X Base System/" ]]; then
+		echo 
+		echo "正在卸載 /Volumes/OS X Base System/"
+		echo "Unmounting /Volumes/OS X Base System/"
+		diskutil eject "/Volumes/OS X Base System/"
+		rm -rf "/Volumes/OS X Base System/"
+	fi
+	if [[ -d "/Volumes/InstallESD/" ]]; then
+		echo 
+		echo "正在卸載 /Volumes/InstallESD/"
+		echo "Unmounting /Volumes/InstallESD/"
+		diskutil eject "/Volumes/InstallESD/"
+		rm -rf "/Volumes/InstallESD/"
+	fi
+	clear
+
+	echo 
+	printf "\e[1;34m此腳本僅適用製作 10.13, 10.14 的安裝盤。 This script is used to make 10.13, 10.14 installer only.\e[0m\n"
+	echo 
+	echo "製作 macOS MBR installer 安裝盤，你需要一個分區，"
+	echo "Disk1mbrInstaller, 最小空間: 7.8 GB，這是開機安裝盤。"
+	echo 
+	echo "Make macOS MBR installer, you need one partition,"
+	echo "Disk1mbrInstaller, minimal size: 7.8 GB, hdd or USB, MBR or GPT, this is MBR-installer boot disk."
+
+	scriptdirpath=${LocateScriptPath}
+
+	echo 
+	echo "You will need two steps to make installer."
+	echo 
+	echo "1.Drag in the full Installer App (from Finder): ............................................. it's the Full Installer App."
+	echo "2.Drag in the partition to write Disk1mbrInstaller as /Volumes/xxxxx (from Finder): ......... it's the USB for MBR Installer."
+	echo 
+
+	open "/Applications/"
+	echo "1.拖入 原始 Installer App : "
+	read -p "1.Drag in the full Installer App (from Finder): " MacOSinstallerapp
+
+	if [[ ! -f "${MacOSinstallerapp}/Contents/SharedSupport/BaseSystem.dmg" ]]; then
+		echo
+		echo "發生錯誤！！！"
+		echo
+		echo "無法開啓選取的原始 Installer App ${MacOSinstallerapp}"
+		echo
+		echo "請重新開啓 腳本app，"
+		echo "並選用正確的 原始 Installer App。"
+		echo
+		echo
+		echo "Error!"
+		echo
+		echo "Unable to open the selected full Installer App of ${MacOSinstallerapp}."
+		echo
+		echo "Please re-run the script."
+		echo "Please select the right full Installer App."
+		echo
+		echo
+		exit
+	fi
+
+	hdiutil attach -noverify -quiet -nobrowse "${MacOSinstallerapp}/Contents/SharedSupport/BaseSystem.dmg"
+	if [[ -d "/Volumes/macOS Base System/" ]]; then
+		BaseSystemDisk="/Volumes/macOS Base System"
+	elif [[ -d "/Volumes/OS X Base System/" ]]; then
+		BaseSystemDisk="/Volumes/OS X Base System"
+	fi
+	if [[ ! -f "${BaseSystemDisk}/System/Library/CoreServices/SystemVersion.plist" ]]; then
+		echo
+		echo "發生錯誤！！！"
+		echo
+		echo "選取的 ${MacOSinstallerapp}/Contents/SharedSupport/BaseSystem.dmg 無法開啓。"
+		echo
+		echo "請重新開啓 腳本app，"
+		echo "並選用正確的 原始 Installer App。"
+		echo
+		echo
+		echo "Error!"
+		echo
+		echo "Unable to open the selected ${MacOSinstallerapp}/Contents/SharedSupport/BaseSystem.dmg"
+		echo
+		echo "Please re-run the script."
+		echo "Please select the right full Installer App."
+		echo
+		echo
+		exit
+	fi
+	ProductBuildVersion=`cat "${BaseSystemDisk}/System/Library/CoreServices/SystemVersion.plist" | grep -A 1 "ProductBuildVersion" | grep string | sed 's/<string>//g' | sed 's/<\/string>//g' | awk '{print $1;}' `
+	ProductVersion=`cat "${BaseSystemDisk}/System/Library/CoreServices/SystemVersion.plist" | grep -A 1 "ProductVersion" | grep string | sed 's/<string>//g' | sed 's/<\/string>//g' | awk '{print $1;}' `
+	if [[ ${ProductVersion} == "10.13" ]]; then
+		ProductVersion="10.13.0"
+	fi
+	if [[ ${ProductVersion} == "10.14" ]]; then
+		ProductVersion="10.14.0"
+	fi
+	echo 
+	printf "  選用的 Installer App 版本為   \e[1;34m$ProductVersion $ProductBuildVersion\e[0m\n"
+	printf "  The selected Installer App is \e[1;34m$ProductVersion $ProductBuildVersion\e[0m\n"
+
+	mbrpatchver=`echo ${ProductVersion} | sed 's/.\{5\}/& /g' | awk '{print $1;}' `
+	if [[ ${mbrpatchver} > 10.14 ]]; then
+		echo 
+		printf "\e[1;34m此腳本僅適用製作 10.13, 10.14 的安裝盤。 This script is used to make 10.13, 10.14 installer only.\e[0m\n"
+		echo 
+		exit
+	fi
+
+	if [[ -d "${scriptdirpath}/System/Library/PrivateFrameworks/OSInstaller.framework" ]]; then
+		echo
+		echo "  已找到 Found ${scriptdirpath}/System/Library/PrivateFrameworks/OSInstaller.framework"
+		datafile=yes
+	fi
+	if [[ ! -d "${scriptdirpath}/System/Library/PrivateFrameworks/OSInstaller.framework" ]]; then
+		echo
+		echo "  未找到 Not found ${scriptdirpath}/System/Library/PrivateFrameworks/OSInstaller.framework"
+		datafile=no
+	fi
+
+	if [[ ${datafile} = no ]]; then
+		echo
+		echo
+		echo
+
+		echo "  發生錯誤！！！"
+		echo "  發生錯誤！！！"
+		echo "  發生錯誤！！！"
+		echo
+		echo "  請將 未找到 的文件 放入 EasyMBR-Installer1013 腳本的文件夾中"
+		echo "  ${scriptpath}"
+
+		echo
+		echo
+		echo
+
+		echo "  Error!"
+		echo "  Error!"
+		echo "  Error!"
+		echo
+		echo "  Please put the Not found files into the folder of script EasyMBR-Installer1013."
+		echo "  ${scriptpath}"
+
+		echo
+		echo
+		echo
+		exit
+	fi
+
+
+	open "/Volumes/"
+	echo 
+	echo "  Disk1mbrInstaller 至少 7.8 GB 空間"
+	echo "  先格盤為 HFS, Mac OS 擴展 分區，所有資料將被刪除"
+	echo 
+	echo "  Disk1mbrInstaller, minimal size: 7.8 GB, hdd or USB, MBR or GPT."
+	echo "  Please format as HFS, Mac OS Extended partition, all data will be removed."
+	echo 
+	echo "2.拖入 要寫入的 Disk1mbrInstaller 安裝盤分區 /Volumes/xxxxx : "
+	read -p "2.Drag in the partition to write Disk1mbrInstaller as /Volumes/xxxxx (from Finder): " SelectDisk1mbrInstaller
+
+	if [[ ! -d "${SelectDisk1mbrInstaller}" ]]; then
+		echo
+		echo "發生錯誤！！！"
+		echo
+		echo "選取的 ${SelectDisk1mbrInstaller} 無法開啓。"
+		echo
+		echo "請重新開啓 腳本app，"
+		echo
+		echo
+		echo "Error!"
+		echo
+		echo "Unable to open the selected partition of ${SelectDisk1mbrInstaller}."
+		echo
+		echo "Please re-run the script."
+		echo
+		echo
+		exit
+	fi
+	devDisk1mbrInstaller=`diskutil info "${SelectDisk1mbrInstaller}" | grep "Device Node" | awk '{print $3;}' `
+
+    # 10.12+
+	TotalSpace=`diskutil info "${SelectDisk1mbrInstaller}" | grep "Volume Total Space" | awk '{print $4;}' `
+    # 10.11-
+	if [[ ${TotalSpace} == "" ]]; then
+		TotalSpace=`diskutil info "${SelectDisk1mbrInstaller}" | grep "Total Size" | awk '{print $3;}' `
+	fi
+
+	# All exclude 10.12
+	FreeSpace=`diskutil info "${SelectDisk1mbrInstaller}" | grep "Volume Free Space" | awk '{print $4;}' `
+    # 10.12
+	if [[ ${FreeSpace} == "" ]]; then
+		FreeSpace=`diskutil info "${SelectDisk1mbrInstaller}" | grep "Volume Available Space" | awk '{print $4;}' `
+	fi
+	
+	echo 
+	printf "  \e[1;34m${SelectDisk1mbrInstaller}\e[0m 分區 可用/全部 容量大小: \e[1;34m${FreeSpace}/${TotalSpace}\e[0m GB\n"
+	printf "  \e[1;34m${SelectDisk1mbrInstaller}\e[0m Volume Free/Total Space: \e[1;34m${FreeSpace}/${TotalSpace}\e[0m GB\n"
+
+	mbrOSInstaller="${scriptdirpath}/System/Library/PrivateFrameworks/OSInstaller.framework"
+	if [[ -d "${mbrOSInstaller}" ]]; then
+		echo 
+		echo "3.選用 已經修改過的 OSInstaller 文件 : "
+		echo "3.Select the patched MBR OSInstaller file: "
+		echo "  ${mbrOSInstaller}"
+	fi
+
+	if [[ ! -d "${mbrOSInstaller}" ]]; then
+		echo 
+		echo "未找到 ${mbrOSInstaller}"
+		echo "Not found ${mbrOSInstaller}"
+		echo 
+		exit
+	fi
+
+	hdiutil attach -noverify -quiet "${MacOSinstallerapp}/Contents/SharedSupport/InstallESD.dmg"
+
+	open "/Volumes/"
+
+	echo 
+	echo "正在開啓${MacOSinstallerapp}/Contents/SharedSupport/InstallESD.dmg"
+	echo "Opening ${MacOSinstallerapp}/Contents/SharedSupport/InstallESD.dmg"
+	echo 
+
+	if [[ ! -f "/Volumes/InstallESD/Packages/OSInstall.mpkg" ]]; then
+		echo "未找到 /Volumes/InstallESD/Packages/OSInstall.mpkg"
+		echo "Not found /Volumes/InstallESD/Packages/OSInstall.mpkg"
+		echo 
+		exit
+	fi
+	if [[ -f "/Volumes/InstallESD/Packages/OSInstall.mpkg" ]]; then
+		echo "找到  /Volumes/InstallESD/Packages/OSInstall.mpkg"
+		echo "Found /Volumes/InstallESD/Packages/OSInstall.mpkg"
+		echo 
+	fi
+
+	echo "按任意鍵開始 進行 macOS ${ProductVersion} MBR 懶人版製作．．．"
+	read -rsp $"Press any key to start to make macOS ${ProductVersion} MBR installer... " -n1 key
+	echo 
+
+	if [[ -f "${MacOSinstallerapp}/Contents/SharedSupport/BaseSystem.dmg" ]]; then
+		echo 
+		echo "開始製作 Disk1mbrInstaller 安裝盤"
+		echo "Start to make Disk1mbrInstaller partition."
+		echo 
+		echo "正在恢復 BaseSystem.dmg 到 ${SelectDisk1mbrInstaller}"
+		echo "Restoring the BaseSystem.dmg to partition ${SelectDisk1mbrInstaller}"
+		echo 
+		diskutil eraseVolume JHFS+ Disk1mbrJHFS ${devDisk1mbrInstaller}
+		echo 
+		asr restore -source "${MacOSinstallerapp}/Contents/SharedSupport/BaseSystem.dmg" -target "${devDisk1mbrInstaller}" -noprompt -noverify -erase
+		if [[ -d "/Volumes/Disk1BaseSystem/" ]]; then
+			echo
+			diskutil eject "/Volumes/Disk1BaseSystem/"
+			rm -rf "/Volumes/Disk1BaseSystem/"
+		fi
+		diskutil rename "${devDisk1mbrInstaller}" "Disk1BaseSystem"
+		Disk1mbrInstallerBaseSystem="/Volumes/Disk1BaseSystem"
+		if [[ ! -d "${Disk1mbrInstallerBaseSystem}/System/Installation/" ]]; then
+			echo
+			echo "      發生錯誤！"
+			echo
+			echo "無法恢復 BaseSystem.dmg 到 ${SelectDisk1mbrInstaller}"
+			echo
+			echo "請重新 選用要寫入的 Disk1mbrInstaller 安裝盤分區，並先格盤為 HFS日誌式 分區。"
+			echo
+			echo
+			echo "      Error!"
+			echo
+			echo "Unable to restore BaseSystem.dmg to partition ${SelectDisk1mbrInstaller}"
+			echo
+			echo "Please re-select the partiton to write Disk1mbrInstaller, format as HFS, Mac OS Extended partition first."
+			echo
+			echo
+			exit
+		fi
+		echo 
+		echo "完成恢復 BaseSystem.dmg"
+		echo "Restore BaseSystem.dmg is finished."
+		echo 
+		diskutil umount ${devDisk1mbrInstaller}
+		diskutil mount ${devDisk1mbrInstaller}
+	fi
+
+	echo 
+	echo "正在 拷貝 ${Disk1mbrInstallerBaseSystem} 文件，請耐心等候！"
+	echo "Coping files to ${Disk1mbrInstallerBaseSystem}, be patient."
+	echo 
+	if [[ -d "${Disk1mbrInstallerBaseSystem}/System/Installation" ]]; then
+		mkdir -p "${Disk1mbrInstallerBaseSystem}/System/Library/Kernels"
+		"${scriptdirpath}/System/lzvn" -d "${Disk1mbrInstallerBaseSystem}/System/Library/PrelinkedKernels/prelinkedkernel" kernel "${Disk1mbrInstallerBaseSystem}/System/Library/Kernels/kernel"
+		chmod 755 "${Disk1mbrInstallerBaseSystem}/System/Library/Kernels/kernel"
+		if [[ ! -f "${Disk1mbrInstallerBaseSystem}/System/Library/PrivateFrameworks/OSInstaller.framework/Versions/A/OSInstaller" ]]; then
+			echo
+			echo "      發生錯誤！"
+			echo
+			echo "無法找到 ${Disk1mbrInstallerBaseSystem}/System/Library/PrivateFrameworks/OSInstaller.framework/Versions/A/OSInstaller"
+			echo
+			echo "請重新 選用要寫入的 Disk1mbrInstaller 安裝盤分區，並先格盤為 HFS日誌式 分區。"
+			echo
+			echo
+			echo "      Error!"
+			echo
+			echo "Unable to find ${Disk1mbrInstallerBaseSystem}/System/Library/PrivateFrameworks/OSInstaller.framework/Versions/A/OSInstaller"
+			echo
+			echo "Please re-select the partiton to write Disk1mbrInstaller, format as HFS, Mac OS Extended partition first."
+			echo
+			echo
+			exit
+		elif [[ -f "${Disk1mbrInstallerBaseSystem}/System/Library/PrivateFrameworks/OSInstaller.framework/Versions/A/OSInstaller" ]]; then
+			rm -rf "${Disk1mbrInstallerBaseSystem}/System/Library/Frameworks/Quartz.framework"
+			rm -rf "${Disk1mbrInstallerBaseSystem}/System/Library/Frameworks/QuickLook.framework"
+			rm -rf "${Disk1mbrInstallerBaseSystem}/System/Library/PrivateFrameworks/ChunkingLibrary.framework"
+			rm -rf "${Disk1mbrInstallerBaseSystem}/System/Library/PrivateFrameworks/GenerationalStorage.framework"
+			rm -rf "${Disk1mbrInstallerBaseSystem}/System/Library/PrivateFrameworks/OSInstaller.framework"
+			rm -rf "${Disk1mbrInstallerBaseSystem}/System/Installation/CDIS/macOS Installer.app"
+			echo "${scriptdirpath}/System/ -> ${Disk1mbrInstallerBaseSystem}/System/"
+			cp -Rf "${scriptdirpath}/System/"* "${Disk1mbrInstallerBaseSystem}/System/"
+			cp -f "${MacOSinstallerapp}/Contents/Resources/ProductPageIcon_256x256.tiff" "${Disk1mbrInstallerBaseSystem}/System/Installation/CDIS/macOS Installer.app/Contents/Resources/X.tiff"
+		fi
+		if [[ ${mbrpatchver} > 10.13 ]]; then
+			cp -fv "${scriptdirpath}/Q4-mojave2core/mojave2core" "${Disk1mbrInstallerBaseSystem}/usr/bin/mojave2core"
+		fi
+		cp -fv "${scriptdirpath}/Q5-AppleAHCIPort/ich10fix" "${Disk1mbrInstallerBaseSystem}/usr/bin/ich10fix"
+		cp -fv "${MacOSinstallerapp}/Contents/SharedSupport/AppleDiagnostics.chunklist" "${Disk1mbrInstallerBaseSystem}/"
+		cp -fv "${MacOSinstallerapp}/Contents/SharedSupport/AppleDiagnostics.dmg" "${Disk1mbrInstallerBaseSystem}/"
+		cp -fv "${MacOSinstallerapp}/Contents/SharedSupport/BaseSystem.chunklist" "${Disk1mbrInstallerBaseSystem}/"
+		cp -fv "${MacOSinstallerapp}/Contents/SharedSupport/BaseSystem.dmg" "${Disk1mbrInstallerBaseSystem}/"
+		rm -rf "${Disk1mbrInstallerBaseSystem}/System/Installation/Packages"
+		mkdir -p "${Disk1mbrInstallerBaseSystem}/System/Installation/Packages"
+		cp -Rfv "/Volumes/InstallESD/Packages/"* "${Disk1mbrInstallerBaseSystem}/System/Installation/Packages/"
+		#### patch OSInstall.mpkg start ####
+		pkgutil --expand-full "${Disk1mbrInstallerBaseSystem}/System/Installation/Packages/OSInstall.mpkg" "${Disk1mbrInstallerBaseSystem}/System/Installation/Packages/OSInstall-patch"
+		distribution="${Disk1mbrInstallerBaseSystem}/System/Installation/Packages/OSInstall-patch/Distribution"
+		cp ${distribution} ${distribution}-org
+		echo >> ${distribution}-org
+		sed -e '/volume-check/d' ${distribution} > distribution-new
+		sed -e '/installation-check/d' distribution-new > ${distribution}
+		#diff -Nuar ${distribution}-org ${distribution} > "${Disk1mbrInstallerBaseSystem}/System/Installation/Packages/OSInstall-diff.txt"
+		rm ${distribution}-org
+		rm distribution-new
+		rm -f "${Disk1mbrInstallerBaseSystem}/System/Installation/Packages/OSInstall.mpkg"
+		pkgutil --flatten "${Disk1mbrInstallerBaseSystem}/System/Installation/Packages/OSInstall-patch" "${Disk1mbrInstallerBaseSystem}/System/Installation/Packages/OSInstall.mpkg"
+		rm -rf "${Disk1mbrInstallerBaseSystem}/System/Installation/Packages/OSInstall-patch" 
+		#### patch OSInstall.mpkg end.. ####
+	fi
+
+	echo 
+	diskutil umount ${devDisk1mbrInstaller}
+	diskutil mount ${devDisk1mbrInstaller}
+
+	OSver=`echo ${ProductVersion} | sed 's/\.//g' | awk '{print $1;}' `
+	mbrdiskname="${OSver}EasyMBR${ProductBuildVersion}"
+	echo 
+	echo "改名為 ${mbrdiskname}"
+	echo "Rename as ${mbrdiskname}"
+	diskutil rename "${devDisk1mbrInstaller}" "${mbrdiskname}"
+
+	diskutil umount ${devDisk1mbrInstaller}
+	diskutil mount ${devDisk1mbrInstaller}
+
+	if [[ -d "/Volumes/macOS Base System/" ]]; then
+		echo
+		diskutil eject "/Volumes/macOS Base System/"
+		rm -rf "/Volumes/macOS Base System/"
+	fi
+	if [[ -d "/Volumes/OS X Base System/" ]]; then
+		echo
+		diskutil eject "/Volumes/OS X Base System/"
+		rm -rf "/Volumes/OS X Base System/"
+	fi
+
+	diskutil eject "/Volumes/InstallESD/"
+
+	echo 
+	echo "完成製作 macOS ${ProductVersion} MBR installer /Volumes/${mbrdiskname} 安裝盤"
+	echo "The macOS ${ProductVersion} MBR installer of /Volumes/${mbrdiskname} is finished."
+	echo
+
+	open "/Volumes/${mbrdiskname}"
+
+	echo "現在可以 使用安裝盤 /Volumes/${mbrdiskname} 進行安裝"
+	echo 
+	echo "如有任何安裝問題，請自行參閱 HowTo Q/A 內容說明"
+	echo 
+	echo 
+	echo "結束 macOS ${ProductVersion} 安裝盤製作程序！"
+	echo 
+	echo 
+	echo "You can start to boot /Volumes/${mbrdiskname} to install now."
+	echo 
+	echo "If you have any Installation issue, please read HowTo Q/A first."
+	echo 
+	echo 
+	echo "macOS ${ProductVersion} MBR installer is done!"
+	echo 
+	echo 
+}
+if [[ `id -u` -ne 0 ]];
+	then
+	updatescript
+	echo 
+	printf "\e[1;34m此腳本僅適用製作 10.13, 10.14 的安裝盤。 This script is used to make 10.13, 10.14 installer only.\e[0m\n"
+	echo 
+	echo "製作 macOS MBR installer 安裝盤，你需要一個分區，"
+	echo "Disk1mbrInstaller, 最小空間: 7.8 GB，這是開機安裝盤。"
+	echo 
+	echo "Make macOS MBR installer, you need one partition,"
+	echo "Disk1mbrInstaller, minimal size: 7.8 GB, hdd or USB, MBR or GPT, this is MBR-installer boot disk."
+	echo 
+	echo "這個腳本必須使用 root 權限!"
+	echo "This script must be run as root!"
+	sudo "$0" "$@"
+else
+	makembrInstaller "$@"
+fi
+
+exit 0
