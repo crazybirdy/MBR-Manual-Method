@@ -2,7 +2,7 @@
 printf '\033[8;60;165t'
 clear
 
-LocalScriptVer="v1.0.1"
+LocalScriptVer="v1.0.2"
 RemoteScriptVer=""
 RemoteScriptPath="https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master/Q7-Update-installScript"
 LocateScriptPath="$HOME/MBR-Manual-Method/Q7-Update-installScript"
@@ -344,9 +344,9 @@ function updatelist()
       distribution="${macOSUpdkeydistribution[$index]}.English.dist"
       rm -f *dist
       curl $url$distribution -o ${macOSUpdkeydistribution[$index]}.English.dist 2>/dev/null
-      macOSupdateSecurity[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep SU_TITLE | grep strings | grep Security | sed 's/<strings language="English">"SU_TITLE"//g' | sed 's/=//g' | sed 's/Developer Beta//g' | sed 's/Public Beta//g' | sed 's/";//g' | awk '{print $3;}'  `
-      macOSupdatebuildver[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist  | grep '"SU_VERS" = "' | sed 's/"SU_VERS" = "//g' | sed 's/";//g' | awk '{print $1;}' `
-      macOSupdatebuildversion[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist  | grep -A 1 macOSProductBuildVersion | grep string | sed 's/<string>//g' | sed 's/<\/string>//g' | awk '{print $1;}' `
+      macOSupdateSecurity[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep -A 1 SoftwareUpdate | grep Mojave | sed 's/<line choice="SecUpd//g' | sed 's/Mojave"\/>//g' | awk '{print $1;}' `
+      macOSupdatebuildver[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep '"SU_VERS" = "' | sed 's/"SU_VERS" = "//g' | sed 's/";//g' | awk '{print $1;}' `
+      macOSupdatebuildversion[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep -A 1 macOSProductBuildVersion | grep string | sed 's/<string>//g' | sed 's/<\/string>//g' | awk '{print $1;}' `
       macOSupdatebuildver[$index]=${macOSupdatebuildver[$index]}.${macOSupdatebuildversion[$index]}.${macOSupdateSecurity[$index]}
       macOSupdatebeta[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep SU_TITLE | grep strings | grep Beta `
       if [[ ! ${macOSupdatebeta[$index]} == "" ]]; then 
