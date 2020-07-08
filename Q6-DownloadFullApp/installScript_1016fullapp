@@ -2,7 +2,7 @@
 printf '\033[8;60;172t'
 clear
 
-LocalScriptVer="v1.0.1"
+LocalScriptVer="v1.0.2"
 RemoteScriptVer=""
 RemoteScriptPath="https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master/Q6-DownloadFullApp"
 LocateScriptPath="$HOME/MBR-Manual-Method/Q6-DownloadFullApp"
@@ -63,7 +63,7 @@ updatescript() {
 }
 
 #
-# This script is refer to Pike R. Alpha's work as follow, also thanks to Pike R. Alpha.       by crazybirdy. v9.20200707
+# This script is refer to Pike R. Alpha's work as follow, also thanks to Pike R. Alpha.       by crazybirdy. v9.20200708
 #
 
 ########################################################################################################################
@@ -167,56 +167,115 @@ function catalogselect()
 }
 function fullapparray()
 {
-  macOSdmgAllArray=`cat ${catalogfile} | grep InstallAssistant.pkg | grep -v integrityData | sed 's/<string>//g' | sed 's/<\/string>//g' | awk '{print $1;}'`
+  # 10.15
+  macOSdmgAllArray=`cat ${catalogfile} | grep BaseSystem.dmg | grep -v integrityData | sed 's/<string>//g' | sed 's/<\/string>//g' | awk '{print $1;}'`
   let index=0
   for element in "${macOSdmgAllArray[@]}"; do
-    macOSdmgAll[$index]="${element}"
+    macOSdmgAAll[$index]="${element}"
     let index++
   done
 
-  macOSdmg=($(echo "${macOSdmgAll[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+  # 10.16
+  macOSpkgAllArray=`cat ${catalogfile} | grep InstallAssistant.pkg | grep -v integrityData | sed 's/<string>//g' | sed 's/<\/string>//g' | awk '{print $1;}'`
+  let index=0
+  for element in "${macOSpkgAllArray[@]}"; do
+    macOSpkgAAll[$index]="${element}"
+    let index++
+  done
 
-  index=0
-  for macOSdmglist in "${macOSdmg[@]}"
-  do
-    if [[ ! $macOSdmglist == "" ]]; then
+  macOSdmgA=($(echo "${macOSdmgAAll[@]}" "${macOSpkgAAll[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+
+	index=0
+	for macOSdmglist in "${macOSdmgA[@]}"
+	do
+    checkdmg=`echo $macOSdmglist | grep BaseSystem.dmg `
+    checkpkg=`echo $macOSdmglist | grep InstallAssistant.pkg `
+    # 10.15
+    if [[ ! $checkdmg == "" ]]; then
+			macOSdmgpath=${macOSdmglist%%'BaseSystem.dmg'*}
+
+			macOSUpdkey[$index]=`echo $macOSdmglist | sed 's/\// /g' | awk '{print $7;}' `
+			macOSUpdkeydistribution[$index]=`echo ${macOSUpdkey[$index]} | sed 's/.\{9\}/& /g' | awk '{print $1;}' `
+
+			url="${macOSdmgpath}"
+			distribution="${macOSUpdkeydistribution[$index]}.English.dist"
+			rm -f *dist
+
+			curl $url$distribution -o ${macOSUpdkeydistribution[$index]}.English.dist 2>/dev/null
+			macOSupdateosver[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep InstallAssistantAuto | grep version | awk '{print $4;}' | sed 's/version="//g' | sed 's/.\{7\}/& /g' | awk '{print $1;}' `
+			macOSupdatebuildver[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep -A1 BUILD | grep -A1 key | grep string | sed 's/<string>//g' | sed 's/<\/string>//g' | awk '{print $1;}' `
+			macOSupdatebeta[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep SU_TITLE | grep strings | grep macOS | grep Beta | sed 's/<strings language="English">"SU_TITLE" = "//g' | sed 's/";//g' | sed 's/Install //g' | sed 's/    //g' | sed 's/    //g' | sed 's/  //g' `
+			rm -f *dist
+
+			macOSupdatebuildver[$index]="${macOSupdateosver[$index]}.${macOSupdatebuildver[$index]}"
+
+			macOSver=`echo ${macOSupdateosver[$index]} | sed 's/.\{5\}/& /g' | awk '{print $1;}' `
+			if [[ ${macOSver} < 10.16 ]]; then
+				if [[ ${macOSupdatebeta[$index]} == "" ]]; then
+					macOSdmgBAll[$index]="${macOSupdatebuildver[$index]}=${macOSdmglist}"
+					let index++
+				fi 
+			elif [[ ${macOSver} > 10.15 ]]; then
+				macOSdmgBAll[$index]="${macOSupdatebuildver[$index]}=${macOSdmglist}"
+				let index++
+			fi
+		fi
+    # 10.16
+    if [[ ! $checkpkg == "" ]]; then
       macOSdmgpath=${macOSdmglist%%'InstallAssistant.pkg'*}
 
       macOSUpdkey[$index]=`echo $macOSdmglist | sed 's/\// /g' | awk '{print $7;}' `
       macOSUpdkeydistribution[$index]=`echo ${macOSUpdkey[$index]} | sed 's/.\{9\}/& /g' | awk '{print $1;}' `
 
       url="${macOSdmgpath}"
-      distribution=`cat ${catalogfile} | grep ${url} | grep English.dist | sed 's/<string>//g' | sed 's/<\/string>//g' | sed 's/\// /g' | awk '{print $9;}' `
+      distribution=`cat ${catalogfile} | grep ${macOSUpdkey[$index]} | grep English.dist | sed 's/<string>//g' | sed 's/<\/string>//g' | sed 's/\// /g' | awk '{print $9;}' | awk NR==1 `
       rm -f *dist
 
       curl $url$distribution -o ${macOSUpdkeydistribution[$index]}.English.dist 2>/dev/null
-      macOSupdateosver[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep InstallAssistantAuto | grep version | awk '{print $4;}' | sed 's/version="//g' | sed 's/.\{7\}/& /g' | awk '{print $1;}' `
+      macOSupdateosver[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep -A1 VERSION | grep -A1 key | grep string | sed 's/<string>//g' | sed 's/<\/string>//g' | awk '{print $1;}' `
+      if [[ ${macOSupdateosver[$index]} == "10.16" ]]; then 
+        macOSupdateosver[$index]="10.16.0"
+      fi
       macOSupdatebuildver[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep -A1 BUILD | grep -A1 key | grep string | sed 's/<string>//g' | sed 's/<\/string>//g' | awk '{print $1;}' `
+      macOSupdatebeta[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep SU_TITLE | grep strings | grep macOS | grep Beta | sed 's/<strings language="English">"SU_TITLE" = "//g' | sed 's/";//g' | sed 's/Install //g' | sed 's/    //g' | sed 's/    //g' | sed 's/  //g' `
       rm -f *dist
 
       macOSupdatebuildver[$index]="${macOSupdateosver[$index]}.${macOSupdatebuildver[$index]}"
 
-      macOSupdateAll[$index]="${macOSupdatebuildver[$index]}=${macOSdmglist}"
-      let index++
+      macOSver=`echo ${macOSupdateosver[$index]} | sed 's/.\{5\}/& /g' | awk '{print $1;}' `
+      if [[ ${macOSver} < 10.16 ]]; then
+        if [[ ${macOSupdatebeta[$index]} == "" ]]; then
+          macOSdmgBAll[$index]="${macOSupdatebuildver[$index]}=${macOSdmglist}"
+          let index++
+        fi 
+      elif [[ ${macOSver} > 10.15 ]]; then
+        macOSdmgBAll[$index]="${macOSupdatebuildver[$index]}=${macOSdmglist}"
+        let index++
+      fi
     fi
-  done
-  macOSupdate=($(echo "${macOSupdateAll[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
+	done
+	
+	macOSdmgB=($(echo "${macOSdmgBAll[@]}" | tr ' ' '\n' | sort -u | tr '\n' ' '))
 
-  index=0
-  for macOSdmglist in "${macOSupdate[@]}"
-  do
-    if [[ ! $macOSdmglist == "" ]]; then
-      macOSdmg[$index]=`echo $macOSdmglist | sed 's/=/ /g' | awk '{print $2;}' `
-      let index++
-    fi
-  done
+	index=0
+	for macOSdmglist in "${macOSdmgB[@]}"
+	do
+		if [[ ! $macOSdmglist == "" ]]; then
+			macOSdmg[$index]=`echo $macOSdmglist | sed 's/=/ /g' | awk '{print $2;}' `
+			let index++
+		fi
+	done
 }
 function fullapplist()
 {
   index=0
   for macOSdmglist in "${macOSdmg[@]}"
   do
-    if [[ ! $macOSdmglist == "" ]]; then
+    checkdmg=`echo $macOSdmglist | grep BaseSystem.dmg `
+    checkpkg=`echo $macOSdmglist | grep InstallAssistant.pkg `
+    # 10.15
+    if [[ ! $checkdmg == "" ]]; then
+      macOSdmgpath=${macOSdmglist%%'BaseSystem.dmg'*}
       macOSUpdver[$index]=`echo $macOSdmglist | sed 's/\// /g' | awk '{print $9;}' | sed 's/macOSUpd//g' | sed 's/.pkg//g' `
       macOSUpdversion1[$index]=`echo $macOSdmglist | sed 's/\// /g' | awk '{print $5;}' `
       macOSUpdversion2[$index]=`echo $macOSdmglist | sed 's/\// /g' | awk '{print $6;}' `
@@ -225,8 +284,35 @@ function fullapplist()
       macOSUpdkeydistribution[$index]=`echo ${macOSUpdkey[$index]} | sed 's/.\{9\}/& /g' | awk '{print $1;}' `
       macOSUpdsalt[$index]=`echo $macOSdmglist | sed 's/\// /g' | awk '{print $8;}' `
 
-      url="https://swdist.apple.com/content/downloads/${macOSUpdversion[$index]}/${macOSUpdkey[$index]}/${macOSUpdsalt[$index]}/"
-      distribution=`cat ${catalogfile} | grep ${url} | grep English.dist | sed 's/<string>//g' | sed 's/<\/string>//g' | sed 's/\// /g' | awk '{print $9;}' `
+      url="${macOSdmgpath}"
+      distribution="${macOSUpdkeydistribution[$index]}.English.dist"
+      rm -f *dist
+
+      curl $url$distribution -o ${macOSUpdkeydistribution[$index]}.English.dist 2>/dev/null
+      macOSupdateosver[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep InstallAssistantAuto | grep version | awk '{print $4;}' | sed 's/version="//g' | sed 's/.\{7\}/& /g' | awk '{print $1;}' `
+      macOSupdatebeta[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep SU_TITLE | grep strings | grep macOS | sed 's/<strings language="English">"SU_TITLE" = "//g' | sed 's/";//g' | sed 's/Install //g' | sed 's/    //g' | sed 's/    //g' | sed 's/  //g' `
+      macOSupdatebuildver[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep -A1 BUILD | grep -A1 key | grep string | sed 's/<string>//g' | sed 's/<\/string>//g' | awk '{print $1;}' `
+      rm -f *dist
+
+      macOSupdatebuildver[$index]="${macOSupdateosver[$index]}.${macOSupdatebuildver[$index]}"
+      macOSuptime[$index]=`cat ${catalogfile} | grep -A 5 PostDate | grep -B 7 ${macOSUpdkeydistribution[$index]} | grep \<date\> | sed 's/<date>//g' | sed 's/<\/date>//g' | awk '{print $1;}' | sed 's/T/ /g' | sed 's/Z//g' | awk NR==1 `
+      macOSupdate[$index]="${macOSuptime[$index]} .. ${macOSUpdkeydistribution[$index]} .. ${macOSupdatebuildver[$index]} ${macOSupdatebeta[$index]}"
+      macOSlist[$index]=`echo ${macOSdmglist} `
+      let index++
+    fi
+    # 10.16
+    if [[ ! $checkpkg == "" ]]; then
+      macOSdmgpath=${macOSdmglist%%'InstallAssistant.pkg'*}
+      macOSUpdver[$index]=`echo $macOSdmglist | sed 's/\// /g' | awk '{print $9;}' | sed 's/macOSUpd//g' | sed 's/.pkg//g' `
+      macOSUpdversion1[$index]=`echo $macOSdmglist | sed 's/\// /g' | awk '{print $5;}' `
+      macOSUpdversion2[$index]=`echo $macOSdmglist | sed 's/\// /g' | awk '{print $6;}' `
+      macOSUpdversion[$index]="${macOSUpdversion1[$index]}/${macOSUpdversion2[$index]}"
+      macOSUpdkey[$index]=`echo $macOSdmglist | sed 's/\// /g' | awk '{print $7;}' `
+      macOSUpdkeydistribution[$index]=`echo ${macOSUpdkey[$index]} | sed 's/.\{9\}/& /g' | awk '{print $1;}' `
+      macOSUpdsalt[$index]=`echo $macOSdmglist | sed 's/\// /g' | awk '{print $8;}' `
+
+      url="${macOSdmgpath}"
+      distribution=`cat ${catalogfile} | grep ${macOSUpdkey[$index]} | grep English.dist | sed 's/<string>//g' | sed 's/<\/string>//g' | sed 's/\// /g' | awk '{print $9;}' | awk NR==1 `
       rm -f *dist
 
       curl $url$distribution -o ${macOSUpdkeydistribution[$index]}.English.dist 2>/dev/null
@@ -239,7 +325,7 @@ function fullapplist()
       rm -f *dist
 
       macOSupdatebuildver[$index]="${macOSupdateosver[$index]}.${macOSupdatebuildver[$index]}"
-      macOSuptime[$index]=`cat ${catalogfile} | grep -A 5 PostDate | grep -B 7 $url${macOSUpdkeydistribution[$index]} | grep \<date\> | sed 's/<date>//g' | sed 's/<\/date>//g' | awk '{print $1;}' | sed 's/T/ /g' | sed 's/Z//g' | awk NR==1 `
+      macOSuptime[$index]=`cat ${catalogfile} | grep -A 5 PostDate | grep -B 7 ${macOSUpdkeydistribution[$index]} | grep \<date\> | sed 's/<date>//g' | sed 's/<\/date>//g' | awk '{print $1;}' | sed 's/T/ /g' | sed 's/Z//g' | awk NR==1 `
       macOSupdate[$index]="${macOSuptime[$index]} .. ${macOSUpdkeydistribution[$index]} .. ${macOSupdatebuildver[$index]} ${macOSupdatebeta[$index]}"
       macOSlist[$index]=`echo ${macOSdmglist} `
       let index++
@@ -316,34 +402,6 @@ function selectfullappversion()
     rm -f ${catalogfile}
     exit 0
   fi
-  echo "                                               [ $downloadver ] ${macOSupdate[$downloadver]}"
-}
-function checkspace()
-{
-  RootDisk="/"
-
-  # 10.12+
-  TotalSpace=`diskutil info "${RootDisk}" | grep "Volume Total Space" | awk '{print $4;}' `
-  # 10.11-
-  if [[ ${TotalSpace} == "" ]]; then
-  TotalSpace=`diskutil info "${RootDisk}" | grep "Total Size" | awk '{print $3;}' `
-  fi
-
-  # All exclude 10.12
-  FreeSpace=`diskutil info "${RootDisk}" | grep "Volume Free Space" | awk '{print $4;}' `
-  # 10.12
-  if [[ ${FreeSpace} == "" ]]; then
-  FreeSpace=`diskutil info "${RootDisk}" | grep "Volume Available Space" | awk '{print $4;}' `
-  fi
-
-  printf "  開機系統分區 \e[1;34m${RootDisk}\e[0m 分區 可用/全部 容量大小: \e[1;34m${FreeSpace}/${TotalSpace}\e[0m GB\n"
-  printf "  System space \e[1;34m${RootDisk}\e[0m Volume Free/Total Space: \e[1;34m${FreeSpace}/${TotalSpace}\e[0m GB\n"	
-  echo 
-   if [[ ${FreeSpace} < "20.0" ]]; then
-	  printf "  開機系統分區 \e[1;34m${RootDisk}\e[0m 分區 可用容量大小: 至少 \e[1;31m20.0\e[0m GB .......... 可用容量小於 20 GB         .. \e[1;31m建議停止下載\e[0m\n"
-	  printf "  System space \e[1;34m${RootDisk}\e[0m Volume Free Space: need \e[1;31m20.0\e[0m GB .......... Free space less than 20 GB .. \e[1;31msuggest to stop downloading.\e[0m\n"
-	  echo
-  fi
 }
 function downloadfullapp()
 {
@@ -351,10 +409,16 @@ function downloadfullapp()
   version="${macOSUpdversion[$downloadver]}"
   key="${macOSUpdkey[$downloadver]}"
   salt="${macOSUpdsalt[$downloadver]}"
+  echo "                                               [ $downloadver ] ${macOSupdate[$downloadver]}"
 
-  distribution=`cat ${catalogfile} | grep ${url} | grep English.dist | sed 's/<string>//g' | sed 's/<\/string>//g' | sed 's/\// /g' | awk '{print $9;}' `
+  distribution=`cat ${catalogfile} | grep "${version}" | grep "${key}" | grep "${salt}" | grep English | sed 's/<string>//g' | sed 's/<\/string>//g' | sed 's/\// /g' | awk '{print $9;}' `
 
-    targetFiles[0]=`cat ${catalogfile} | grep "${version}" | grep "${key}" | grep "${salt}" | grep -v integrityData | grep InstallAssistant.pkg | sed 's/<string>//g' | sed 's/<\/string>//g' | sed 's/\// /g' | awk '{print $9;}' | awk NR==1 `
+    targetFiles[0]=`cat ${catalogfile} | grep "${version}" | grep "${key}" | grep "${salt}" | grep -v integrityData | grep InstallAssistantAuto.pkg | sed 's/<string>//g' | sed 's/<\/string>//g' | sed 's/\// /g' | awk '{print $9;}' | awk NR==1 `
+    targetFiles[1]=`cat ${catalogfile} | grep "${version}" | grep "${key}" | grep "${salt}" | grep -v integrityData | grep AppleDiagnostics.chunklist | sed 's/<string>//g' | sed 's/<\/string>//g' | sed 's/\// /g' | awk '{print $9;}' | awk NR==1 `
+    targetFiles[2]=`cat ${catalogfile} | grep "${version}" | grep "${key}" | grep "${salt}" | grep -v integrityData | grep AppleDiagnostics.dmg | sed 's/<string>//g' | sed 's/<\/string>//g' | sed 's/\// /g' | awk '{print $9;}' | awk NR==1 `
+    targetFiles[3]=`cat ${catalogfile} | grep "${version}" | grep "${key}" | grep "${salt}" | grep -v integrityData | grep BaseSystem.chunklist | sed 's/<string>//g' | sed 's/<\/string>//g' | sed 's/\// /g' | awk '{print $9;}' | awk NR==1 `
+    targetFiles[4]=`cat ${catalogfile} | grep "${version}" | grep "${key}" | grep "${salt}" | grep -v integrityData | grep BaseSystem.dmg | sed 's/<string>//g' | sed 's/<\/string>//g' | sed 's/\// /g' | awk '{print $9;}' | awk NR==1 `
+    targetFiles[5]=`cat ${catalogfile} | grep "${version}" | grep "${key}" | grep "${salt}" | grep -v integrityData | grep InstallESDDmg.pkg | sed 's/<string>//g' | sed 's/<\/string>//g' | sed 's/\// /g' | awk '{print $9;}' | awk NR==1 `
 
   rm -f ${catalogfile}
   cd
@@ -373,7 +437,7 @@ function downloadfullapp()
   # Target distribution language.
   #
   keydistribution=`echo ${key} | sed 's/.\{9\}/& /g' | awk '{print $1;}' `
-  #distribution="${keydistribution}.English.dist"
+  distribution="${keydistribution}.English.dist"
 
   #
   # Check target directory.
@@ -412,6 +476,195 @@ function downloadfullapp()
   done
   echo
 
+  read -p "手動下載放入上列文件，或由腳本自動下載文件，繼續進行？   Put files as above manually or download files automatically, continue? (y/n) " downloadyesno
+  case "$downloadyesno" in
+    y|Y)
+      echo
+    ;;
+    *)
+      echo
+      echo "停止進行下載！！！               Stop downloading!!!"
+      echo
+      exit 0
+    ;;
+  esac
+
+  #
+  # Download distribution file.
+  #
+  if [[ ! -e "${tmpDirectory}/${key}/${distribution}" ]]; then
+    echo "Downloading: ${distribution} ..."
+    curl "${url}${distribution}" -o "${tmpDirectory}/${key}/${distribution}"
+    #
+    # Remove root only restriction/allow us to install on any target volume.
+    #
+    cat "${tmpDirectory}/${key}/${distribution}" | sed -e 's|rootVolumeOnly="true"|allow-external-scripts="true"|' > "${tmpDirectory}/${key}/new.dist"
+
+    if [[ -e "${tmpDirectory}/${key}/new.dist" ]]; then
+      mv "${tmpDirectory}/${key}/new.dist" "${tmpDirectory}/${key}/${distribution}"
+    fi
+  else
+    echo "File: ${distribution} already there, skipping this download."
+  fi
+
+  #
+  # Change to working directory (otherwise it will fail to locate the packages).
+  #
+  cd "${tmpDirectory}/${key}"
+
+  #
+  # Download target files.
+  #
+  for filename in "${targetFiles[@]}"
+  do
+    if [[ ! $filename == "" ]]; then
+      if [[ ! -e "${tmpDirectory}/${key}/${filename}" ]]; then
+        echo "Downloading: ${filename} ..."
+        curl "${url}${filename}" -o "${tmpDirectory}/${key}/${filename}"
+      else
+        echo "File: ${filename} already there, skipping this download."
+      fi
+    fi
+  done
+
+  pkgutil --expand-full InstallAssistantAuto.pkg Installapp
+
+  cd "${tmpDirectory}/${key}/Installapp/Payload/"
+  fullappnames=(*)
+
+  echo
+  echo "找到 Found ...... ${fullappnames}"
+  echo
+
+  for appname in "${fullappnames[@]}"
+  do
+        if [[ -e "${tmpDirectory}/${key}/Installapp/Payload/${appname}/Contents/SharedSupport/" ]]; then
+          mv "${tmpDirectory}/${key}/AppleDiagnostics.chunklist" "${tmpDirectory}/${key}/Installapp/Payload/${appname}/Contents/SharedSupport/"
+          mv "${tmpDirectory}/${key}/AppleDiagnostics.dmg" "${tmpDirectory}/${key}/Installapp/Payload/${appname}/Contents/SharedSupport/"
+          mv "${tmpDirectory}/${key}/BaseSystem.chunklist" "${tmpDirectory}/${key}/Installapp/Payload/${appname}/Contents/SharedSupport/"
+          mv "${tmpDirectory}/${key}/BaseSystem.dmg" "${tmpDirectory}/${key}/Installapp/Payload/${appname}/Contents/SharedSupport/"
+          mv "${tmpDirectory}/${key}/InstallESDDmg.pkg" "${tmpDirectory}/${key}/Installapp/Payload/${appname}/Contents/SharedSupport/InstallESD.dmg"
+          rm -rf "$HOME/Desktop/App-${macOSupdatebuildver[$downloadver]}"
+          mkdir -p "$HOME/Desktop/App-${macOSupdatebuildver[$downloadver]}"
+          mv "${tmpDirectory}/${key}/Installapp/Payload/${appname}" "$HOME/Desktop/App-${macOSupdatebuildver[$downloadver]}/"
+          newappname="${appname}"
+        fi
+  done
+
+  echo "$HOME/Desktop/App-${macOSupdatebuildver[$downloadver]}/"
+  ls -la "$HOME/Desktop/App-${macOSupdatebuildver[$downloadver]}/"
+  echo
+  echo "$HOME/Desktop/App-${macOSupdatebuildver[$downloadver]}/${newappname}/Contents/SharedSupport/"
+  ls -la "$HOME/Desktop/App-${macOSupdatebuildver[$downloadver]}/${newappname}/Contents/SharedSupport/"
+  open "$HOME/Desktop/App-${macOSupdatebuildver[$downloadver]}/"
+
+  echo
+  echo "完整安裝app 存放在 $HOME/Desktop/App-${macOSupdatebuildver[$downloadver]}/"
+  echo "The full installer app is located on $HOME/Desktop/App-${macOSupdatebuildver[$downloadver]}/"
+  echo
+  printf "\e[1;34mMake sure you get the full installer without any errors during the downloading process.\e[0m\n"
+  printf "\e[1;34m1.check the received sizes of each file, make sure they’re all 100 downloaded.\e[0m\n"
+  printf "\e[1;34m2.if any one of the files \e[0m\e[1;31mgets error\e[0m\e[1;34m during the downloading process,\e[0m\n"
+  printf "\e[1;34m  and\e[0m \e[1;31mdidn’t get 100 downloaded,\e[0m\e[1;34m you\e[0m \e[1;31mneed to re-download the full installer app again.\e[0m\n"
+  echo
+  if [[ -d "${tmpDirectory}/${key}" ]]; then
+    rm -rf "${tmpDirectory}/${key}"
+  fi
+}
+function checkspace()
+{
+  RootDisk="/"
+
+  # 10.12+
+  TotalSpace=`diskutil info "${RootDisk}" | grep "Volume Total Space" | awk '{print $4;}' `
+  # 10.11-
+  if [[ ${TotalSpace} == "" ]]; then
+  TotalSpace=`diskutil info "${RootDisk}" | grep "Total Size" | awk '{print $3;}' `
+  fi
+
+  # All exclude 10.12
+  FreeSpace=`diskutil info "${RootDisk}" | grep "Volume Free Space" | awk '{print $4;}' `
+  # 10.12
+  if [[ ${FreeSpace} == "" ]]; then
+  FreeSpace=`diskutil info "${RootDisk}" | grep "Volume Available Space" | awk '{print $4;}' `
+  fi
+
+  printf "  開機系統分區 \e[1;34m${RootDisk}\e[0m 分區 可用/全部 容量大小: \e[1;34m${FreeSpace}/${TotalSpace}\e[0m GB\n"
+  printf "  System space \e[1;34m${RootDisk}\e[0m Volume Free/Total Space: \e[1;34m${FreeSpace}/${TotalSpace}\e[0m GB\n"  
+  echo 
+   if [[ ${FreeSpace} < "20.0" ]]; then
+    printf "  開機系統分區 \e[1;34m${RootDisk}\e[0m 分區 可用容量大小: 至少 \e[1;31m20.0\e[0m GB .......... 可用容量小於 20 GB         .. \e[1;31m建議停止下載\e[0m\n"
+    printf "  System space \e[1;34m${RootDisk}\e[0m Volume Free Space: need \e[1;31m20.0\e[0m GB .......... Free space less than 20 GB .. \e[1;31msuggest to stop downloading.\e[0m\n"
+    echo
+  fi
+}
+function downloadfullappbigsur()
+{
+  updatever="${macOSUpdver[$downloadver]}"
+  version="${macOSUpdversion[$downloadver]}"
+  key="${macOSUpdkey[$downloadver]}"
+  salt="${macOSUpdsalt[$downloadver]}"
+  echo "                                               [ $downloadver ] ${macOSupdate[$downloadver]}"
+
+  distribution=`cat ${catalogfile} | grep ${macOSUpdkey[$downloadver]} | grep English.dist | sed 's/<string>//g' | sed 's/<\/string>//g' | sed 's/\// /g' | awk '{print $9;}' | awk NR==1 `
+
+  targetFiles[0]=`cat ${catalogfile} | grep "${version}" | grep "${key}" | grep "${salt}" | grep -v integrityData | grep InstallAssistant.pkg | sed 's/<string>//g' | sed 's/<\/string>//g' | sed 's/\// /g' | awk '{print $9;}' | awk NR==1 `
+
+  rm -f ${catalogfile}
+  cd
+
+  #
+  # Initialisation of a variable (our target folder).
+  #
+  tmpDirectory="/private/tmp"
+
+  #
+  # URL copied from sucatalog.gz (think CatalogURL).
+  #
+  url="https://swdist.apple.com/content/downloads/${version}/${key}/${salt}/"
+
+  #
+  # Target distribution language.
+  #
+  keydistribution=`echo ${key} | sed 's/.\{9\}/& /g' | awk '{print $1;}' `
+
+  #
+  # Check target directory.
+  #
+  if [[ -d "${tmpDirectory}/${key}" ]]; then
+    rm -rf "${tmpDirectory}/${key}"
+    mkdir "${tmpDirectory}/${key}"
+  fi
+  if [[ ! -d "${tmpDirectory}/${key}" ]]; then
+    mkdir "${tmpDirectory}/${key}"
+  fi
+  open "${tmpDirectory}/${key}"
+
+  echo 
+  echo "準備進行下載。Prepare to download the files.   [ $downloadver ] ${macOSupdate[$downloadver]}."
+  echo 
+  echo "${url}${distribution}"
+  for filename in "${targetFiles[@]}"
+  do
+    if [[ ! $filename == "" ]]; then
+      echo "${url}$filename"
+    fi
+  done
+  echo
+
+  printred "如果你已經發生下載錯誤，可以 預先手動下載 上列網址文件，並將文件放入 以下 正確的文件夾 即可繼續進行。\n"
+  printred "If get errors of downloading before, you can download files as above URL manually and put into correct folder as below before continuing.\n"
+  echo
+
+  echo "${tmpDirectory}/${key}/${distribution}"
+  for filename in "${targetFiles[@]}"
+  do
+    if [[ ! $filename == "" ]]; then
+      echo "${tmpDirectory}/${key}/$filename"
+    fi
+  done
+  echo
+  
   checkspace
 
   read -p "手動下載放入上列文件，或由腳本自動下載文件，繼續進行？   Put files as above manually or download files automatically, continue? (y/n) " downloadyesno
@@ -477,7 +730,6 @@ function downloadfullapp()
 
   sudo mv ~/Desktop/App-back/Install* /Applications/
   rm -rf "$HOME/Desktop/App-back"
-  rm -rf "${tmpDirectory}/${key}/"
 
   echo
   echo "$HOME/Desktop/App-${macOSupdatebuildver[$downloadver]}/"
@@ -494,9 +746,9 @@ function downloadfullapp()
   printf "\e[1;34m2.if any one of the files \e[0m\e[1;31mgets error\e[0m\e[1;34m during the downloading process,\e[0m\n"
   printf "\e[1;34m  and\e[0m \e[1;31mdidn’t get 100 downloaded,\e[0m\e[1;34m you\e[0m \e[1;31mneed to re-download the full installer app again.\e[0m\n"
   echo
-  #if [[ -d "${tmpDirectory}/${key}" ]]; then
-  #  rm -rf "${tmpDirectory}/${key}"
-  #fi
+  if [[ -d "${tmpDirectory}/${key}" ]]; then
+    rm -rf "${tmpDirectory}/${key}"
+  fi
 }
 function main()
 {
@@ -505,8 +757,13 @@ function main()
   catalogselect
   fullapparray
   fullapplist
-  selectfullappversion  
-  downloadfullapp
+  selectfullappversion
+  macOSver=`echo ${macOSupdateosver[$downloadver]} | sed 's/.\{5\}/& /g' | awk '{print $1;}' `
+  if [[ ${macOSver} < 10.16 ]]; then
+    downloadfullapp
+  elif [[ ${macOSver} > 10.15 ]]; then
+    downloadfullappbigsur
+  fi  
 }
 
 main
