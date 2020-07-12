@@ -233,8 +233,9 @@ function fullapparray()
 
       curl $url$distribution -o ${macOSUpdkeydistribution[$index]}.English.dist 2>/dev/null
       macOSupdateosver[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep -A1 VERSION | grep -A1 key | grep string | sed 's/<string>//g' | sed 's/<\/string>//g' | awk '{print $1;}' `
-      if [[ ${macOSupdateosver[$index]} == "10.16" ]]; then 
-        macOSupdateosver[$index]="10.16.0"
+      macOSverFive=`echo ${macOSupdateosver[$index]} | sed 's/.\{5\}/& /g' | awk '{print $2;}' `
+      if [[ ${macOSverFive} == "" ]]; then
+        macOSupdateosver[$index]="${macOSupdateosver[$index]}.0"
       fi
       macOSupdatebuildver[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep -A1 BUILD | grep -A1 key | grep string | sed 's/<string>//g' | sed 's/<\/string>//g' | awk '{print $1;}' `
       macOSupdatebeta[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep SU_TITLE | grep strings | grep macOS | grep Beta | sed 's/<strings language="English">"SU_TITLE" = "//g' | sed 's/";//g' | sed 's/Install //g' | sed 's/    //g' | sed 's/    //g' | sed 's/  //g' `
@@ -317,8 +318,9 @@ function fullapplist()
 
       curl $url$distribution -o ${macOSUpdkeydistribution[$index]}.English.dist 2>/dev/null
       macOSupdateosver[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep -A1 VERSION | grep -A1 key | grep string | sed 's/<string>//g' | sed 's/<\/string>//g' | awk '{print $1;}' `
-      if [[ ${macOSupdateosver[$index]} == "10.16" ]]; then 
-        macOSupdateosver[$index]="10.16.0"
+      macOSverFive=`echo ${macOSupdateosver[$index]} | sed 's/.\{5\}/& /g' | awk '{print $2;}' `
+      if [[ ${macOSverFive} == "" ]]; then
+        macOSupdateosver[$index]="${macOSupdateosver[$index]}.0"
       fi
       macOSupdatebeta[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep title | grep \/title | grep macOS | sed 's/<title>//g' | sed 's/<\/title>//g' | sed 's/    //g'  `
       macOSupdatebuildver[$index]=`cat ${macOSUpdkeydistribution[$index]}.English.dist | grep -A1 BUILD | grep -A1 key | grep string | sed 's/<string>//g' | sed 's/<\/string>//g' | awk '{print $1;}' `
