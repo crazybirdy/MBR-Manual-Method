@@ -220,25 +220,25 @@ fi
     Installpkgone="InstallOS.pkg"
   fi
 
-  sudo rm -rf  "$HOME/Desktop/NewFullInstallerApp" 2>/dev/null
-  sudo rm -rf  "$HOME/Desktop/BackupFullInstallerApp" 2>/dev/null
-  mkdir -p "$HOME/Desktop/NewFullInstallerApp"
-  mkdir -p "$HOME/Desktop/BackupFullInstallerApp"
-  sudo mv /Applications/Install* "$HOME/Desktop/BackupFullInstallerApp" 2>/dev/null
+  sudo rm -rf  "$HOME/Desktop/FullInstallerAppNew" 2>/dev/null
+  sudo rm -rf  "$HOME/Desktop/FullInstallerAppBackup" 2>/dev/null
+  mkdir -p "$HOME/Desktop/FullInstallerAppNew"
+  mkdir -p "$HOME/Desktop/FullInstallerAppBackup"
+  sudo mv /Applications/Install* "$HOME/Desktop/FullInstallerAppBackup" 2>/dev/null
 
   sudo /usr/sbin/installer -pkg "${Installpkg}" -target "/"
-  sudo mv /Applications/Install* "$HOME/Desktop/NewFullInstallerApp/"
+  sudo mv /Applications/Install* "$HOME/Desktop/FullInstallerAppNew/"
 
-  sudo mv ~/Desktop/BackupFullInstallerApp/Install* /Applications/ 2>/dev/null
-  sudo rm -rf "$HOME/Desktop/BackupFullInstallerApp"
+  sudo mv ~/Desktop/FullInstallerAppBackup/Install* /Applications/ 2>/dev/null
+  sudo rm -rf "$HOME/Desktop/FullInstallerAppBackup"
 
   echo
-  cd "$HOME/Desktop/NewFullInstallerApp/"
+  cd "$HOME/Desktop/FullInstallerAppNew/"
   fullappnames=(*)
   for appname in "${fullappnames[@]}"
   do
-    if [[ -e "$HOME/Desktop/NewFullInstallerApp/${appname}/Contents/SharedSupport/" ]]; then
-      hdiutil attach -noverify -quiet -nobrowse "$HOME/Desktop/NewFullInstallerApp/${appname}/Contents/SharedSupport/InstallESD.dmg"
+    if [[ -e "$HOME/Desktop/FullInstallerAppNew/${appname}/Contents/SharedSupport/" ]]; then
+      hdiutil attach -noverify -quiet -nobrowse "$HOME/Desktop/FullInstallerAppNew/${appname}/Contents/SharedSupport/InstallESD.dmg"
       hdiutil attach -noverify -quiet -nobrowse "/Volumes/OS X Install ESD/BaseSystem.dmg"
 
       BaseSystemDisk="/Volumes/OS X Base System"
@@ -248,7 +248,7 @@ fi
       printf "  The downloaded Installer App is \e[1;34m${ProductVersion} ${ProductBuildVersion}\e[0m\n"
 
       sudo rm -rf "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}"
-      mv "$HOME/Desktop/NewFullInstallerApp" "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}"
+      mv "$HOME/Desktop/FullInstallerAppNew" "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}"
       newappname="${appname}"
     fi
   done
