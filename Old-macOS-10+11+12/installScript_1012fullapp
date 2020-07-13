@@ -2,7 +2,7 @@
 printf '\033[8;60;140t'
 clear
 
-LocalScriptVer="v1.0.1"
+LocalScriptVer="v1.0.2"
 RemoteScriptVer=""
 RemoteScriptPath="https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master/Old-macOS-10+11+12"
 LocateScriptPath="$HOME/MBR-Manual-Method/Old-macOS-10+11+12"
@@ -219,21 +219,26 @@ fi
     Installpkg="/Volumes/Install macOS/InstallOS.pkg"
     Installpkgone="InstallOS.pkg"
   fi
-  echo "正在解壓縮 Unpacking now...... ${Installpkg}"
-  pkgutil --expand-full "${Installpkg}" "/private/tmp/macOSdmg/Installapp"
 
-  cd /private/tmp/macOSdmg/Installapp/${Installpkgone}/Payload
+  rm -rf  "$HOME/Desktop/NewFullInstallerApp" 2>/dev/null
+  rm -rf  "$HOME/Desktop/BackupFullInstallerApp" 2>/dev/null
+  mkdir -p "$HOME/Desktop/NewFullInstallerApp"
+  mkdir -p "$HOME/Desktop/BackupFullInstallerApp"
+  sudo mv /Applications/Install* "$HOME/Desktop/BackupFullInstallerApp" 2>/dev/null
+
+  sudo /usr/sbin/installer -pkg "${Installpkg}" -target "/"
+  sudo mv /Applications/Install* "$HOME/Desktop/NewFullInstallerApp/"
+
+  sudo mv ~/Desktop/BackupFullInstallerApp/Install* /Applications/ 2>/dev/null
+  rm -rf "$HOME/Desktop/BackupFullInstallerApp"
+
+  echo
+  cd "$HOME/Desktop/NewFullInstallerApp/"
   fullappnames=(*)
-
-  echo
-  echo "找到 Found ...... ${fullappnames}"
-  echo
-
   for appname in "${fullappnames[@]}"
   do
-    if [[ -e "/private/tmp/macOSdmg/Installapp/${Installpkgone}/Payload/${appname}/Contents/SharedSupport/" ]]; then
-      mv "/private/tmp/macOSdmg/Installapp/${Installpkgone}/InstallESD.dmg" "/private/tmp/macOSdmg/Installapp/${Installpkgone}/Payload/${appname}/Contents/SharedSupport/InstallESD.dmg"
-      hdiutil attach -noverify -quiet -nobrowse "/private/tmp/macOSdmg/Installapp/${Installpkgone}/Payload/${appname}/Contents/SharedSupport/InstallESD.dmg"
+    if [[ -e "$HOME/Desktop/NewFullInstallerApp/${appname}/Contents/SharedSupport/" ]]; then
+      hdiutil attach -noverify -quiet -nobrowse "$HOME/Desktop/NewFullInstallerApp/${appname}/Contents/SharedSupport/InstallESD.dmg"
       hdiutil attach -noverify -quiet -nobrowse "/Volumes/OS X Install ESD/BaseSystem.dmg"
 
       BaseSystemDisk="/Volumes/OS X Base System"
@@ -243,46 +248,36 @@ fi
       printf "  The downloaded Installer App is \e[1;34m${ProductVersion} ${ProductBuildVersion}\e[0m\n"
 
       rm -rf "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}"
-      mkdir -p "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}"
-      mv "/private/tmp/macOSdmg/Installapp/${Installpkgone}/Payload/${appname}" "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}"
+      mv "$HOME/Desktop/NewFullInstallerApp" "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}"
       newappname="${appname}"
     fi
   done
   echo
-  if [[ -d "/Volumes/OS X Base System/" ]]; then
-    echo "正在卸載 Unmounting /Volumes/OS X Base System/"
-    diskutil eject "/Volumes/OS X Base System/"
-    rm -rf "/Volumes/OS X Base System/"
-    echo
-  fi
-  if [[ -d "/Volumes/OS X Install ESD/" ]]; then
-    echo "正在卸載 Unmounting /Volumes/OS X Install ESD/"
-    diskutil eject "/Volumes/OS X Install ESD/"
-    rm -rf "/Volumes/OS X Install ESD/"
-    echo
-  fi
-  if [[ -d "/Volumes/Install OS X/" ]]; then
-    echo "正在卸載 Unmounting /Volumes/Install OS X/"
-    diskutil eject "/Volumes/Install OS X/"
-    rm -rf "/Volumes/Install OS X/"
-    echo
-  fi
-  if [[ -d "/Volumes/Install macOS/" ]]; then
-    echo "正在卸載 Unmounting /Volumes/Install macOS/"
-    diskutil eject "/Volumes/Install macOS/"
-    rm -rf "/Volumes/Install macOS/"
-    echo
-  fi
-  echo "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}"
-  ls -la "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}"
-  echo
-  echo "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}/${newappname}/Contents/SharedSupport/"
-  ls -la "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}/${newappname}/Contents/SharedSupport/"
+  echo "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}/"
+  ls -la "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}/"
   open "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}/"
-
   echo
   echo "完整安裝app 存放在 $HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}/"
   echo "The full installer app is located on $HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}/"
+  echo
+
+  if [[ -d "/Volumes/OS X Base System/" ]]; then
+    diskutil eject "/Volumes/OS X Base System/"
+    rm -rf "/Volumes/OS X Base System/"
+  fi
+  if [[ -d "/Volumes/OS X Install ESD/" ]]; then
+    diskutil eject "/Volumes/OS X Install ESD/"
+    rm -rf "/Volumes/OS X Install ESD/"
+  fi
+  if [[ -d "/Volumes/Install OS X/" ]]; then
+    diskutil eject "/Volumes/Install OS X/"
+    rm -rf "/Volumes/Install OS X/"
+  fi
+  if [[ -d "/Volumes/Install macOS/" ]]; then
+    diskutil eject "/Volumes/Install macOS/"
+    rm -rf "/Volumes/Install macOS/"
+  fi
+
   echo
   printf "\e[1;34mMake sure you get the full installer without any errors during the downloading process.\e[0m\n"
   printf "\e[1;34m1.check the received sizes of each file, make sure they’re all 100 downloaded.\e[0m\n"
