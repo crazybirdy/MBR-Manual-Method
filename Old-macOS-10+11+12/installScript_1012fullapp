@@ -220,8 +220,8 @@ fi
     Installpkgone="InstallOS.pkg"
   fi
 
-  rm -rf  "$HOME/Desktop/NewFullInstallerApp" 2>/dev/null
-  rm -rf  "$HOME/Desktop/BackupFullInstallerApp" 2>/dev/null
+  sudo rm -rf  "$HOME/Desktop/NewFullInstallerApp" 2>/dev/null
+  sudo rm -rf  "$HOME/Desktop/BackupFullInstallerApp" 2>/dev/null
   mkdir -p "$HOME/Desktop/NewFullInstallerApp"
   mkdir -p "$HOME/Desktop/BackupFullInstallerApp"
   sudo mv /Applications/Install* "$HOME/Desktop/BackupFullInstallerApp" 2>/dev/null
@@ -230,7 +230,7 @@ fi
   sudo mv /Applications/Install* "$HOME/Desktop/NewFullInstallerApp/"
 
   sudo mv ~/Desktop/BackupFullInstallerApp/Install* /Applications/ 2>/dev/null
-  rm -rf "$HOME/Desktop/BackupFullInstallerApp"
+  sudo rm -rf "$HOME/Desktop/BackupFullInstallerApp"
 
   echo
   cd "$HOME/Desktop/NewFullInstallerApp/"
@@ -247,7 +247,7 @@ fi
       printf "  下載的 Installer App 版本為     \e[1;34m${ProductVersion} ${ProductBuildVersion}\e[0m\n"
       printf "  The downloaded Installer App is \e[1;34m${ProductVersion} ${ProductBuildVersion}\e[0m\n"
 
-      rm -rf "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}"
+      sudo rm -rf "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}"
       mv "$HOME/Desktop/NewFullInstallerApp" "$HOME/Desktop/App-${ProductVersion}.${ProductBuildVersion}"
       newappname="${appname}"
     fi
