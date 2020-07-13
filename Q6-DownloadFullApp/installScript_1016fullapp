@@ -724,14 +724,14 @@ function downloadfullappbigsur()
   mkdir -p "$HOME/Desktop/App-${macOSupdatebuildver[$downloadver]}"
   echo
 
-  mkdir -p "$HOME/Desktop/BackupFullInstallerApp"
-  sudo mv /Applications/Install* "$HOME/Desktop/BackupFullInstallerApp" 2>/dev/null
+  mkdir -p "$HOME/Desktop/FullInstallerAppBackup"
+  sudo mv /Applications/Install* "$HOME/Desktop/FullInstallerAppBackup" 2>/dev/null
 
   sudo /usr/sbin/installer -pkg "${tmpDirectory}/${key}/InstallAssistant.pkg" -target "/"
   sudo mv /Applications/Install* "$HOME/Desktop/App-${macOSupdatebuildver[$downloadver]}/"
 
-  sudo mv ~/Desktop/BackupFullInstallerApp/Install* /Applications/ 2>/dev/null
-  rm -rf "$HOME/Desktop/BackupFullInstallerApp"
+  sudo mv ~/Desktop/FullInstallerAppBackup/Install* /Applications/ 2>/dev/null
+  rm -rf "$HOME/Desktop/FullInstallerAppBackup"
 
   echo
   echo "$HOME/Desktop/App-${macOSupdatebuildver[$downloadver]}/"
