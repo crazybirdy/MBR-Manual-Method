@@ -86,21 +86,14 @@ function ich10patch() {
 
 	cp "${AppleAHCIPortbin}" "${AppleAHCIPortbin}-org"
 
-	echo "First patch fix work 'hot-plug': (Need for both 10.13 and 10.14)"
+	echo "Patch to fix 'hot-plug error', 'Still waiting for root device', 'disk1:I/O error':"
 	echo
-	echo "Find ...... 89C82540 6002003D 40200000 750C81E1 BF7FFFFF 898B5101 0000"
-	echo "Replace ... 90909090 90909090 90909090 90909090 90909090 90909090 9090"
+	echo "Find ...... 40600200"
+	echo "Replace ... 00000000"
 	echo
 
-	perl -pi -e 's|\x89\xC8\x25\x40\x60\x02\x00\x3D\x40\x20\x00\x00\x75\x0C\x81\xE1\xBF\x7F\xFF\xFF\x89\x8B\x51\x01\x00\x00|\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90\x90|g' "${AppleAHCIPortbin}"
-
-	echo "Second patch fix 'Still waiting for root device', 'disk1:I/O error': (Need only for 10.13, needn't for 10.14)"
-	echo
-	echo "Find ...... 4585F60F 95C289C8 83E0FE66 85C9780F 84D2750B"
-	echo "Replace ... 89C883E0 FE6685C9 0F98C141 08CC9090 9090750B"
-	echo
-	perl -pi -e 's|\x45\x85\xF6\x0F\x95\xC2\x89\xC8\x83\xE0\xFE\x66\x85\xC9\x78\x0F\x84\xD2\x75\x0B|\x89\xC8\x83\xE0\xFE\x66\x85\xC9\x0F\x98\xC1\x41\x08\xCC\x90\x90\x90\x90\x75\x0B|g' "${AppleAHCIPortbin}"
-
+	perl -pi -e 's|\x40\x60\x02\x00|\x00\x00\x00\x00|g' "${AppleAHCIPortbin}"
+	
 	echo
 	echo "Patching diff:"
 	echo
