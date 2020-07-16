@@ -2,11 +2,11 @@
 printf '\033[8;60;180t'
 clear
 
-LocalScriptVer="v1.0.2"
+LocalScriptVer="v1.0.1"
 RemoteScriptVer=""
 RemoteScriptPath="https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master"
 LocateScriptPath="$HOME/MBR-Manual-Method"
-ScriptName="EasyMBR-Installer1015"
+ScriptName="EasyMBR-Installer10156"
 
 FileNameArray=(
 	Changlog.txt
@@ -182,7 +182,7 @@ function makembrInstaller()
 	clear
 
 	echo 
-	printf "\e[1;34m此腳本僅適用製作 10.15.0 ~ 10.15.5 的安裝盤。               This script is used to make 10.15.0 ~ 10.15.5 installer only.\e[0m\n"
+	printf "\e[1;34m此腳本僅適用製作 10.15.6 的安裝盤。               This script is used to make 10.15.6 installer only.\e[0m\n"
 	echo 
 	echo "製作 macOS MBR installer 安裝盤，你需要一個分區，"
 	echo "Disk1mbrInstaller, 最小空間: 10.0 GB，這是開機安裝盤。"
@@ -259,17 +259,16 @@ function makembrInstaller()
 	printf "  選用的 Installer App 版本為   \e[1;34m$ProductVersion $ProductBuildVersion\e[0m\n"
 	printf "  The selected Installer App is \e[1;34m$ProductVersion $ProductBuildVersion\e[0m\n"
 
-
-	if [[ ${ProductVersion} > "10.15.5" ]]; then
-		echo
-		printf "\e[1;34m此腳本僅適用製作 10.15.0 ~ 10.15.5 的安裝盤。               This script is used to make 10.15.0 ~ 10.15.5 installer only.\e[0m\n"
-		echo
+	if [[ ${ProductVersion} < 10.15.6 ]]; then
+		echo 
+		printf "\e[1;34m此腳本僅適用製作 10.15.6 的安裝盤。               This script is used to make 10.15.6 installer only.\e[0m\n"
+		echo 
 		exit
 	fi
 	mbrpatchver=`echo ${ProductVersion} | sed 's/.\{5\}/& /g' | awk '{print $1;}' `
 	if [[ ${mbrpatchver} < 10.15 ]]; then
 		echo 
-		printf "\e[1;34m此腳本僅適用製作 10.15.0 ~ 10.15.5 的安裝盤。               This script is used to make 10.15.0 ~ 10.15.5 installer only.\e[0m\n"
+		printf "\e[1;34m此腳本僅適用製作 10.15.6 的安裝盤。               This script is used to make 10.15.6 installer only.\e[0m\n"
 		echo 
 		exit
 	fi
@@ -400,53 +399,135 @@ function makembrInstaller()
 		echo 
 	fi
 
+	open "${scriptdirpath}/Q6-DownloadFullApp"
+ 	echo "必須使用 10.14.0 ~ 10.15.5 版本的 BaseSystem.dmg 才可安裝 10.15.6 MBR HFS+ 系統"
+	echo "Need to use the BaseSystem.dmg of 10.14.0 ~ 10.15.5 version to install 10.15.6 MBR HFS+."
+	echo
+	echo "可以從 Q6-DownloadFullApp/installScript_allfullapp 下載 10.15.5 以前版本的 BaseSystem.dmg"
+	echo "You can download BaseSystem.dmg before 10.15.5 from Q6-DownloadFullApp/installScript_allfullapp."
+	echo
+	echo "4.拖入 10.14.0 ~ 10.15.5 版本的 BaseSystem.dmg (不可使用 10.15.6 版本) : "
+	read -p "4.Drag in the BaseSystem.dmg of 10.14.0 ~ 10.15.5 version (Can't be 10.15.6): " SelectBaseSystem
+
+	if [[ ! -f "${SelectBaseSystem}" ]]; then
+		echo
+		echo "發生錯誤！！！"
+		echo
+		echo "選取的 ${SelectBaseSystem} 無法開啓。"
+		echo
+		echo "請重新開啓 腳本app，"
+		echo
+		echo
+		echo "Error!"
+		echo
+		echo "Unable to open the selected ${SelectBaseSystem}."
+		echo
+		echo "Please re-run the script."
+		echo
+		echo
+		exit
+	fi
+
+	if [[ -d "/Volumes/macOS Base System/" ]]; then
+		echo 
+		echo "正在卸載 /Volumes/macOS Base System/"
+		echo "Unmounting /Volumes/macOS Base System/"
+		diskutil eject "/Volumes/macOS Base System/"
+		rm -rf "/Volumes/macOS Base System/"
+	fi
+	hdiutil attach -noverify -quiet -nobrowse "${SelectBaseSystem}"
+	if [[ -d "/Volumes/macOS Base System/" ]]; then
+		BaseSystemDisk="/Volumes/macOS Base System"
+	fi
+	if [[ ! -f "${BaseSystemDisk}/System/Library/CoreServices/SystemVersion.plist" ]]; then
+		echo
+		echo "發生錯誤！！！"
+		echo
+		echo "選取的 ${SelectBaseSystem} 無法開啓。"
+		echo
+		echo "請重新開啓 腳本app，"
+		echo
+		echo
+		echo "Error!"
+		echo
+		echo "Unable to open the selected ${SelectBaseSystem}."
+		echo
+		echo "Please re-run the script."
+		echo
+		echo
+		exit
+		exit
+	fi
+	BaseProductBuildVersion=`cat "${BaseSystemDisk}/System/Library/CoreServices/SystemVersion.plist" | grep -A 1 "ProductBuildVersion" | grep string | sed 's/<string>//g' | sed 's/<\/string>//g' | awk '{print $1;}' `
+	BaseProductVersion=`cat "${BaseSystemDisk}/System/Library/CoreServices/SystemVersion.plist" | grep -A 1 "ProductVersion" | grep string | sed 's/<string>//g' | sed 's/<\/string>//g' | awk '{print $1;}' `
+	if [[ ${BaseProductVersion} == "10.15" ]]; then
+		BaseProductVersion="10.15.0"
+	fi
+	Basembrpatchver=`echo ${BaseProductVersion} | sed 's/.\{5\}/& /g' | awk '{print $1;}' `
+	echo 
+	printf "  選用的 BaseSystem.dmg 版本為   \e[1;34m$BaseProductVersion $BaseProductBuildVersion\e[0m\n"
+	printf "  The selected BaseSystem.dmg is \e[1;34m$BaseProductVersion $BaseProductBuildVersion\e[0m\n"
+
+	if [[ ${BaseProductVersion} < "10.14.0" ]]; then
+		echo
+		echo "選取的 BaseSystem.dmg 版本 無法安裝 10.15.6"
+		echo "The selected BaseSystem.dmg can't be used to install 10.15.6"
+		echo
+		exit
+	fi
+	if [[ ${BaseProductVersion} > "10.15.5" ]]; then
+		echo
+		echo "選取的 BaseSystem.dmg 版本 無法安裝 10.15.6"
+		echo "The selected BaseSystem.dmg can't be used to install 10.15.6"
+		echo
+		exit
+	fi
+
+	echo
 	echo "按任意鍵開始 進行 macOS ${ProductVersion} MBR 懶人版製作．．．"
 	read -rsp $"Press any key to start to make macOS ${ProductVersion} MBR installer... " -n1 key
 	echo 
 
-	if [[ -f "${MacOSinstallerapp}/Contents/SharedSupport/BaseSystem.dmg" ]]; then
-		echo 
-		echo "開始製作 Disk1mbrInstaller 安裝盤"
-		echo "Start to make Disk1mbrInstaller partition."
-		echo 
-		echo "正在恢復 BaseSystem.dmg 到 ${SelectDisk1mbrInstaller}"
-		echo "Restoring the BaseSystem.dmg to partition ${SelectDisk1mbrInstaller}"
-		echo 
-		diskutil eraseVolume JHFS+ Disk1mbrJHFS ${devDisk1mbrInstaller}
-		echo 
-		asr restore -source "${MacOSinstallerapp}/Contents/SharedSupport/BaseSystem.dmg" -target "${devDisk1mbrInstaller}" -noprompt -noverify -erase
-		if [[ -d "/Volumes/Disk1BaseSystem/" ]]; then
-			echo
-			diskutil eject "/Volumes/Disk1BaseSystem/"
-			rm -rf "/Volumes/Disk1BaseSystem/"
-		fi
-		diskutil rename "${devDisk1mbrInstaller}" "Disk1BaseSystem"
-		Disk1mbrInstallerBaseSystem="/Volumes/Disk1BaseSystem"
-		if [[ ! -d "${Disk1mbrInstallerBaseSystem}/System/Installation/" ]]; then
-			echo
-			echo "      發生錯誤！"
-			echo
-			echo "無法恢復 BaseSystem.dmg 到 ${SelectDisk1mbrInstaller}"
-			echo
-			echo "請重新 選用要寫入的 Disk1mbrInstaller 安裝盤分區，並先格盤為 HFS日誌式 分區。"
-			echo
-			echo
-			echo "      Error!"
-			echo
-			echo "Unable to restore BaseSystem.dmg to partition ${SelectDisk1mbrInstaller}"
-			echo
-			echo "Please re-select the partiton to write Disk1mbrInstaller, format as HFS, Mac OS Extended partition first."
-			echo
-			echo
-			exit
-		fi
-		echo 
-		echo "完成恢復 BaseSystem.dmg"
-		echo "Restore BaseSystem.dmg is finished."
-		echo 
-		diskutil umount ${devDisk1mbrInstaller}
-		diskutil mount ${devDisk1mbrInstaller}
+	echo "開始製作 Disk1mbrInstaller 安裝盤"
+	echo "Start to make Disk1mbrInstaller partition."
+	echo 
+	echo "正在恢復 BaseSystem.dmg 到 ${SelectDisk1mbrInstaller}"
+	echo "Restoring the BaseSystem.dmg to partition ${SelectDisk1mbrInstaller}"
+	echo 
+	diskutil eraseVolume JHFS+ Disk1mbrJHFS ${devDisk1mbrInstaller}
+	echo 
+	asr restore -source "${SelectBaseSystem}" -target "${devDisk1mbrInstaller}" -noprompt -noverify -erase
+	if [[ -d "/Volumes/Disk1BaseSystem/" ]]; then
+		echo
+		diskutil eject "/Volumes/Disk1BaseSystem/"
+		rm -rf "/Volumes/Disk1BaseSystem/"
 	fi
+	diskutil rename "${devDisk1mbrInstaller}" "Disk1BaseSystem"
+	Disk1mbrInstallerBaseSystem="/Volumes/Disk1BaseSystem"
+	if [[ ! -d "${Disk1mbrInstallerBaseSystem}/System/Installation/" ]]; then
+		echo
+		echo "      發生錯誤！"
+		echo
+		echo "無法恢復 BaseSystem.dmg 到 ${SelectDisk1mbrInstaller}"
+		echo
+		echo "請重新 選用要寫入的 Disk1mbrInstaller 安裝盤分區，並先格盤為 HFS日誌式 分區。"
+		echo
+		echo
+		echo "      Error!"
+		echo
+		echo "Unable to restore BaseSystem.dmg to partition ${SelectDisk1mbrInstaller}"
+		echo
+		echo "Please re-select the partiton to write Disk1mbrInstaller, format as HFS, Mac OS Extended partition first."
+		echo
+		echo
+		exit
+	fi
+	echo 
+	echo "完成恢復 BaseSystem.dmg"
+	echo "Restore BaseSystem.dmg is finished."
+	echo 
+	diskutil umount ${devDisk1mbrInstaller}
+	diskutil mount ${devDisk1mbrInstaller}
 
 	echo 
 	echo "正在 拷貝 ${Disk1mbrInstallerBaseSystem} 文件，請耐心等候！"
@@ -482,7 +563,7 @@ function makembrInstaller()
 			rm -rf "${Disk1mbrInstallerBaseSystem}/System/Installation/CDIS/macOS Installer.app"
 			echo "${scriptdirpath}/System/ -> ${Disk1mbrInstallerBaseSystem}/System/"
 			cp -Rf "${scriptdirpath}/System/"* "${Disk1mbrInstallerBaseSystem}/System/"
-			if [[ ${mbrpatchver} > 10.14 ]]; then
+			if [[ ${Basembrpatchver} > 10.14 ]]; then
 				rm -rf "${Disk1mbrInstallerBaseSystem}/System/Library/Frameworks/QTKit.framework"
 				rm -rf "${Disk1mbrInstallerBaseSystem}/System/Library/Frameworks/CoreMedia.framework"
 				rm -rf "${Disk1mbrInstallerBaseSystem}/System/Library/Frameworks/CoreMediaIO.framework"
@@ -495,13 +576,9 @@ function makembrInstaller()
 			fi
 			cp -f "${MacOSinstallerapp}/Contents/Resources/ProductPageIcon_256x256.tiff" "${Disk1mbrInstallerBaseSystem}/System/Installation/CDIS/macOS Installer.app/Contents/Resources/X.tiff"
 		fi
-		if [[ ${mbrpatchver} > 10.13 ]]; then
-			cp -fv "${scriptdirpath}/Q4-mojave2core/mojave2core" "${Disk1mbrInstallerBaseSystem}/usr/bin/mojave2core"
-		fi
-		if [[ ${mbrpatchver} > 10.14 ]]; then
-			cp -fv "${scriptdirpath}/Q3-HFS+UpdateCache/copytempdata" "${Disk1mbrInstallerBaseSystem}/usr/bin/copytempdata"
-			cp -fv "${scriptdirpath}/Q3-HFS+UpdateCache/hfsupdatecache" "${Disk1mbrInstallerBaseSystem}/usr/bin/hfsupdatecache"
-		fi
+		cp -fv "${scriptdirpath}/Q4-mojave2core/mojave2core" "${Disk1mbrInstallerBaseSystem}/usr/bin/mojave2core"
+		cp -fv "${scriptdirpath}/Q3-HFS+UpdateCache/copytempdata" "${Disk1mbrInstallerBaseSystem}/usr/bin/copytempdata"
+		cp -fv "${scriptdirpath}/Q3-HFS+UpdateCache/hfsupdatecache" "${Disk1mbrInstallerBaseSystem}/usr/bin/hfsupdatecache"
 		cp -fv "${scriptdirpath}/Q5-AppleAHCIPort/ich10fix" "${Disk1mbrInstallerBaseSystem}/usr/bin/ich10fix"
 		cp -fv "${MacOSinstallerapp}/Contents/SharedSupport/AppleDiagnostics.chunklist" "${Disk1mbrInstallerBaseSystem}/"
 		cp -fv "${MacOSinstallerapp}/Contents/SharedSupport/AppleDiagnostics.dmg" "${Disk1mbrInstallerBaseSystem}/"
@@ -582,7 +659,7 @@ if [[ `id -u` -ne 0 ]];
 	then
 	updatescript
 	echo 
-	printf "\e[1;34m此腳本僅適用製作 10.15.0 ~ 10.15.5 的安裝盤。               This script is used to make 10.15.0 ~ 10.15.5 installer only.\e[0m\n"
+	printf "\e[1;34m此腳本僅適用製作 10.15.6 的安裝盤。               This script is used to make 10.15.6 installer only.\e[0m\n"
 	echo 
 	echo "製作 macOS MBR installer 安裝盤，你需要一個分區，"
 	echo "Disk1mbrInstaller, 最小空間: 10.0 GB，這是開機安裝盤。"
