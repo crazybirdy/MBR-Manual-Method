@@ -14,6 +14,7 @@ FileNameArray=(
 	EasyMBR-Install1015.gif
 	EasyMBR-Installer1013
 	EasyMBR-Installer1015
+    EasyMBR-Installer10156
 	MBR-Manual-Method.txt
 	Q3-HFS+UpdateCache/copytempdata
 	Q3-HFS+UpdateCache/hfsupdatecache
@@ -29,7 +30,9 @@ FileNameArray=(
 	Q6-DownloadFullApp/installScript_1013fullapp
 	Q6-DownloadFullApp/installScript_1014fullapp
 	Q6-DownloadFullApp/installScript_1015fullapp
+	Q6-DownloadFullApp/installScript_1016fullapp
 	Q6-DownloadFullApp/installScript_allfullapp
+	Q6-DownloadFullApp/installScript_BaseSystem
 	Q6-DownloadFullApp/installScript_fullapp.gif
 	Q6-DownloadFullApp/installScript_fullapp.png
 	Q7-Update-installScript/dm
@@ -50,6 +53,7 @@ function fixpermission() {
   FileNameArray=(
     EasyMBR-Installer1013
     EasyMBR-Installer1015
+    EasyMBR-Installer10156
     RunMe
     Old-macOS-10+11+12/installScript_1012fullapp
     Q3-HFS+UpdateCache/copytempdata
@@ -59,7 +63,9 @@ function fixpermission() {
     Q6-DownloadFullApp/installScript_1013fullapp
     Q6-DownloadFullApp/installScript_1014fullapp
     Q6-DownloadFullApp/installScript_1015fullapp
+    Q6-DownloadFullApp/installScript_1016fullapp
     Q6-DownloadFullApp/installScript_allfullapp
+    Q6-DownloadFullApp/installScript_BaseSystem
     Q7-Update-installScript/dm
     Q7-Update-installScript/installScript_1013update
     Q7-Update-installScript/installScript_1014update

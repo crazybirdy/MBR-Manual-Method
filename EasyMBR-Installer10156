@@ -14,7 +14,7 @@ FileNameArray=(
 	EasyMBR-Install1015.gif
 	EasyMBR-Installer1013
 	EasyMBR-Installer1015
-	EasyMBR-Installer10156
+    EasyMBR-Installer10156
 	MBR-Manual-Method.txt
 	Q3-HFS+UpdateCache/copytempdata
 	Q3-HFS+UpdateCache/hfsupdatecache
@@ -30,7 +30,9 @@ FileNameArray=(
 	Q6-DownloadFullApp/installScript_1013fullapp
 	Q6-DownloadFullApp/installScript_1014fullapp
 	Q6-DownloadFullApp/installScript_1015fullapp
+	Q6-DownloadFullApp/installScript_1016fullapp
 	Q6-DownloadFullApp/installScript_allfullapp
+	Q6-DownloadFullApp/installScript_BaseSystem
 	Q6-DownloadFullApp/installScript_fullapp.gif
 	Q6-DownloadFullApp/installScript_fullapp.png
 	Q7-Update-installScript/dm
@@ -51,6 +53,7 @@ function fixpermission() {
   FileNameArray=(
     EasyMBR-Installer1013
     EasyMBR-Installer1015
+    EasyMBR-Installer10156
     RunMe
     Old-macOS-10+11+12/installScript_1012fullapp
     Q3-HFS+UpdateCache/copytempdata
@@ -60,7 +63,9 @@ function fixpermission() {
     Q6-DownloadFullApp/installScript_1013fullapp
     Q6-DownloadFullApp/installScript_1014fullapp
     Q6-DownloadFullApp/installScript_1015fullapp
+    Q6-DownloadFullApp/installScript_1016fullapp
     Q6-DownloadFullApp/installScript_allfullapp
+    Q6-DownloadFullApp/installScript_BaseSystem
     Q7-Update-installScript/dm
     Q7-Update-installScript/installScript_1013update
     Q7-Update-installScript/installScript_1014update
@@ -403,8 +408,8 @@ function makembrInstaller()
  	echo "必須使用 10.14.0 ~ 10.15.5 版本的 BaseSystem.dmg 才可安裝 10.15.6 MBR HFS+ 系統"
 	echo "Need to use the BaseSystem.dmg of 10.14.0 ~ 10.15.5 version to install 10.15.6 MBR HFS+."
 	echo
-	echo "可以從 Q6-DownloadFullApp/installScript_allfullapp 下載 10.15.5 以前版本的 BaseSystem.dmg"
-	echo "You can download BaseSystem.dmg before 10.15.5 from Q6-DownloadFullApp/installScript_allfullapp."
+	echo "可以從 Q6-DownloadFullApp/installScript_BaseSystem 下載 10.15.5 以前版本的 BaseSystem.dmg"
+	echo "You can download BaseSystem.dmg before 10.15.5 from Q6-DownloadFullApp/installScript_BaseSystem."
 	echo
 	echo "4.拖入 10.14.0 ~ 10.15.5 版本的 BaseSystem.dmg (不可使用 10.15.6 版本) : "
 	read -p "4.Drag in the BaseSystem.dmg of 10.14.0 ~ 10.15.5 version (Can't be 10.15.6): " SelectBaseSystem

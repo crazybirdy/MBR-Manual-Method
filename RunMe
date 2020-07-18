@@ -47,6 +47,7 @@ function fixpermission() {
     Q6-DownloadFullApp/installScript_1015fullapp
     Q6-DownloadFullApp/installScript_1016fullapp
     Q6-DownloadFullApp/installScript_allfullapp
+    Q6-DownloadFullApp/installScript_BaseSystem
     Q7-Update-installScript/dm
     Q7-Update-installScript/installScript_1013update
     Q7-Update-installScript/installScript_1014update
