@@ -2,12 +2,10 @@
 printf '\033[8;60;172t'
 clear
 
-LocalScriptVer="v1.0.2"
+LocalScriptVer="v1.0.3"
 RemoteScriptVer=""
 RemoteScriptPath="https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master/Q6-DownloadFullApp"
-scriptpath=`echo $0`
-scriptdirpath=${scriptpath%%'/installScript_110fullapp'*}
-LocateScriptPath="$scriptdirpath"
+LocateScriptPath="$HOME/Desktop/"
 ScriptName="installScript_110fullapp"
 
 FileNameArray=(
