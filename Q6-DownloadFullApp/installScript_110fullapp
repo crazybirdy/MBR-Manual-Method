@@ -2,15 +2,15 @@
 printf '\033[8;60;172t'
 clear
 
-LocalScriptVer="v1.0.1"
+LocalScriptVer="v1.0.2"
 RemoteScriptVer=""
 RemoteScriptPath="https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master/Q6-DownloadFullApp"
-LocateScriptPath="$HOME/MBR-Manual-Method/Q6-DownloadFullApp"
+scriptpath=`echo $0`
+scriptdirpath=${scriptpath%%'/installScript_110fullapp'*}
+LocateScriptPath="$scriptdirpath"
 ScriptName="installScript_110fullapp"
 
 FileNameArray=(
-  installScript_fullapp.gif
-  installScript_fullapp.png
   )
 
 autodownload() {
