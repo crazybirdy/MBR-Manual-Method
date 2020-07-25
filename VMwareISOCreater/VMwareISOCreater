@@ -2,12 +2,10 @@
 printf '\033[8;50;150t'
 clear
 
-LocalScriptVer="v1.0.1"
+LocalScriptVer="v1.0.2"
 RemoteScriptVer=""
 RemoteScriptPath="https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master/VMwareISOCreater"
-scriptpath=`echo $0`
-scriptdirpath=${scriptpath%%'/VMwareISOCreater'*}
-LocateScriptPath="$scriptdirpath"
+LocateScriptPath="$HOME/Desktop/"
 ScriptName="VMwareISOCreater"
 
 FileNameArray=(
