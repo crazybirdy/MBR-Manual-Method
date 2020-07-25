@@ -52,6 +52,7 @@ function fixpermission() {
     Q7-Update-installScript/installScript_1013update
     Q7-Update-installScript/installScript_1014update
     Q7-Update-installScript/installScript_1015update
+    VMwareISOCreater/VMwareISOCreater
     )
   let index=0
   for filename in "${FileNameArray[@]}"; do

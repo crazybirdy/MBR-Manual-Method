@@ -1,0 +1,248 @@
+#!/bin/bash
+printf '\033[8;50;150t'
+clear
+
+LocalScriptVer="v1.0.1"
+RemoteScriptVer=""
+RemoteScriptPath="https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master/VMwareISOCreater"
+scriptpath=`echo $0`
+scriptdirpath=${scriptpath%%'/VMwareISOCreater'*}
+LocateScriptPath="$scriptdirpath"
+ScriptName="VMwareISOCreater"
+
+FileNameArray=(
+  )
+
+autodownload() {
+if [[ ! -d "${LocateScriptPath}" ]]; then
+  mkdir -p "${LocateScriptPath}"
+fi
+let index=0
+for filename in "${FileNameArray[@]}"; do
+  if [[ ! -f "${LocateScriptPath}/${filename}" ]]; then
+    echo
+    echo "Downloading: ${filename} ..."
+    curl "${RemoteScriptPath}/${filename}" -o "${LocateScriptPath}/${filename}"
+  fi
+  let index++
+done
+if [[ ! -f "${LocateScriptPath}/${ScriptName}" ]]; then
+  cat "$0" > "${LocateScriptPath}/${ScriptName}"
+  chmod +x "${LocateScriptPath}/${ScriptName}"
+  exec "${LocateScriptPath}/${ScriptName}"
+fi
+}
+selfUpdate() {
+  echo
+  cat "/private/tmp/${ScriptName}" > "${LocateScriptPath}/${ScriptName}"
+  chmod +x "${LocateScriptPath}/${ScriptName}"
+  open "${LocateScriptPath}"
+  exec "${LocateScriptPath}/${ScriptName}"
+}
+IsNumericOnly() {
+  [[ "${1}" =~ ^-?[0-9]+$ ]] && return 0 || return 1
+}
+updatescript() {
+  autodownload
+  rm -f "/private/tmp/${ScriptName}"
+  curl "${RemoteScriptPath}/${ScriptName}" -o "/private/tmp/${ScriptName}" 2>/dev/null
+
+  RemoteScriptVer=$( cat /private/tmp/${ScriptName} | grep 'LocalScriptVer="v' | grep -v grep | tr -cd '.0-9' )
+  LVALUE=$( echo $LocalScriptVer | tr -cd [:digit:] )
+  RVALUE=$( echo $RemoteScriptVer | tr -cd [:digit:] )
+
+  echo
+  if IsNumericOnly $RVALUE; then
+    [[ $LVALUE -eq $RVALUE ]] && printf "\e[1;34mLocal: ${LocalScriptVer}  ..  Remote: v${RemoteScriptVer}\e[1;32m%*s\e[0m" $((40-${#LocalScriptVer})) "No update available."
+    [[ $LVALUE -gt $RVALUE ]] && printf "\e[1;34mLocal: ${LocalScriptVer}  ..  Remote: v${RemoteScriptVer}\e[1;31m%*s\e[0m" $((40-${#LocalScriptVer})) "Wow, are you coming from the future?"
+    [[ $LVALUE -lt $RVALUE ]] && printf "\e[1;34mLocal: ${LocalScriptVer}  ..  Remote: v${RemoteScriptVer}\e[1;5;34m%*s\e[0m" $((40-${#LocalScriptVer})) "Update available (v$RemoteScriptVer)" && selfUpdate 
+  else
+    printf "${LocalScriptVer}\e[1;31m\n%s\e[0m" "Remote version unavailable due to unknown reasons!"
+  fi
+  clear
+}
+
+function checkspace()
+{
+  RootDisk="/"
+
+  # 10.12+
+  TotalSpace=`diskutil info "${RootDisk}" | grep "Volume Total Space" | awk '{print $4;}' `
+  # 10.11-
+  if [[ ${TotalSpace} == "" ]]; then
+  TotalSpace=`diskutil info "${RootDisk}" | grep "Total Size" | awk '{print $3;}' `
+  fi
+
+  # All exclude 10.12
+  FreeSpace=`diskutil info "${RootDisk}" | grep "Volume Free Space" | awk '{print $4;}' `
+  # 10.12
+  if [[ ${FreeSpace} == "" ]]; then
+  FreeSpace=`diskutil info "${RootDisk}" | grep "Volume Available Space" | awk '{print $4;}' `
+  fi
+
+  printf "  開機系統分區 \e[1;34m${RootDisk}\e[0m 分區 可用/全部 容量大小: \e[1;34m${FreeSpace}/${TotalSpace}\e[0m GB\n"
+  printf "  System space \e[1;34m${RootDisk}\e[0m Volume Free/Total Space: \e[1;34m${FreeSpace}/${TotalSpace}\e[0m GB\n"  
+  echo 
+   if [[ ${FreeSpace} < "30.0" ]]; then
+    printf "  開機系統分區 \e[1;34m${RootDisk}\e[0m 分區 可用容量大小: 至少 \e[1;31m30.0\e[0m GB .......... 可用容量小於 30 GB         .. \e[1;31m建議停止製作\e[0m\n"
+    printf "  System space \e[1;34m${RootDisk}\e[0m Volume Free Space: need \e[1;31m30.0\e[0m GB .......... Free space less than 30 GB .. \e[1;31msuggest to stop creating.\e[0m\n"
+    echo
+  fi
+}
+function selectfullapp()
+{
+	if [[ -d "/Volumes/macOS Base System/" ]]; then
+		echo 
+		diskutil eject "/Volumes/macOS Base System/"
+	fi
+	if [[ -d "/Volumes/OS X Base System/" ]]; then
+		echo 
+		diskutil eject "/Volumes/OS X Base System/"
+	fi
+	if [[ -d "/Volumes/OS X Install ESD/" ]]; then
+		echo 
+		diskutil eject "/Volumes/OS X Install ESD/"
+	fi
+	if [[ -d "/Volumes/InstallESD/" ]]; then
+		echo 
+		diskutil eject "/Volumes/InstallESD/"
+	fi
+	if [[ -d "/Volumes/Shared Support/" ]]; then
+		echo 
+		diskutil eject "/Volumes/Shared Support/"
+	fi
+	diskutil eject /Volumes/Install*  2>/dev/null
+	diskutil eject /Volumes/Install*  2>/dev/null
+	diskutil eject /Volumes/Install*  2>/dev/null
+	diskutil eject /Volumes/Install*  2>/dev/null
+	diskutil eject /Volumes/Install*  2>/dev/null
+	open "$HOME/Desktop/"
+	clear
+
+	echo
+	echo "適用版本：10.14 10.15 11.0 等版本"
+	echo "This script is used for 10.14 10.15 11.0 only."
+	echo
+
+	echo "1.拖入 原始 Installer App : "
+	read -p "1.Drag in the full Installer App (from Finder): " MacOSinstallerapp
+
+	# 10.16
+	if [[ -f "${MacOSinstallerapp}/Contents/SharedSupport/SharedSupport.dmg" ]]; then
+		hdiutil attach -noverify -quiet -nobrowse "${MacOSinstallerapp}/Contents/SharedSupport/SharedSupport.dmg"
+	fi
+	# 10.13 ~ 10.15
+	if [[ -f "${MacOSinstallerapp}/Contents/SharedSupport/BaseSystem.dmg" ]]; then
+		hdiutil attach -noverify -quiet -nobrowse "${MacOSinstallerapp}/Contents/SharedSupport/BaseSystem.dmg"
+	fi
+	# 10.9 ~ 10.12
+	if [[ ! -f "${MacOSinstallerapp}/Contents/SharedSupport/BaseSystem.dmg" ]]; then
+		if [[ -f "${MacOSinstallerapp}/Contents/SharedSupport/InstallESD.dmg" ]]; then
+			hdiutil attach -noverify -quiet -nobrowse "${MacOSinstallerapp}/Contents/SharedSupport/InstallESD.dmg"
+			if [[ -f "/Volumes/OS X Install ESD/BaseSystem.dmg" ]]; then
+				hdiutil attach -noverify -quiet -nobrowse "/Volumes/OS X Install ESD/BaseSystem.dmg"
+			fi
+		fi
+	fi
+	# 10.16
+	if [[ -f "/Volumes/Shared Support/com_apple_MobileAsset_MacSoftwareUpdate/com_apple_MobileAsset_MacSoftwareUpdate.xml" ]]; then
+		ProductBuildVersion=`cat "/Volumes/Shared Support/com_apple_MobileAsset_MacSoftwareUpdate/com_apple_MobileAsset_MacSoftwareUpdate.xml" | grep -A 1 ">Build<" | grep string | sed 's/<string>//' | sed 's/<\/string>//' | awk '{print $1;}' `
+		ProductVersion=`cat "/Volumes/Shared Support/com_apple_MobileAsset_MacSoftwareUpdate/com_apple_MobileAsset_MacSoftwareUpdate.xml" | grep -A 1 "OSVersion" | grep string | sed 's/<string>//' | sed 's/<\/string>//' | awk '{print $1;}' `
+	fi
+	# 10.13 ~ 10.15
+	if [[ -f "/Volumes/macOS Base System/System/Library/CoreServices/SystemVersion.plist" ]]; then
+		ProductBuildVersion=`cat "/Volumes/macOS Base System/System/Library/CoreServices/SystemVersion.plist" | grep -A 1 "ProductBuildVersion" | grep string | sed 's/<string>//' | sed 's/<\/string>//' | awk '{print $1;}' `
+		ProductVersion=`cat "/Volumes/macOS Base System/System/Library/CoreServices/SystemVersion.plist" | grep -A 1 "ProductVersion" | grep string | sed 's/<string>//' | sed 's/<\/string>//' | awk '{print $1;}' `
+	fi
+	# 10.9 ~ 10.12
+	if [[ -f "/Volumes/OS X Base System/System/Library/CoreServices/SystemVersion.plist" ]]; then
+		ProductBuildVersion=`cat "/Volumes/OS X Base System/System/Library/CoreServices/SystemVersion.plist" | grep -A 1 "ProductBuildVersion" | grep string | sed 's/<string>//' | sed 's/<\/string>//' | awk '{print $1;}' `
+		ProductVersion=`cat "/Volumes/OS X Base System/System/Library/CoreServices/SystemVersion.plist" | grep -A 1 "ProductVersion" | grep string | sed 's/<string>//' | sed 's/<\/string>//' | awk '{print $1;}' `
+	fi
+	macOSverFive=`echo ${ProductVersion} | sed 's/.\{5\}/& /g' | awk '{print $2;}' `
+	if [[ ${macOSverFive} == "" ]]; then
+		ProductVersion="${ProductVersion}.0"
+	fi
+	OSver=`echo ${ProductVersion} | sed 's/\.//g' | awk '{print $1;}' `
+	echo 
+	printf "  選用的 Installer App 版本為   \e[1;34m$ProductVersion $ProductBuildVersion\e[0m\n"
+	printf "  The selected Installer App is \e[1;34m$ProductVersion $ProductBuildVersion\e[0m\n"
+	echo 
+}
+function makeVMwareinstallISO()
+{
+	if [[ -d "/Volumes/VMinstallISO/" ]]; then
+		diskutil eject "/Volumes/VMinstallISO/"
+		rm -rf "/Volumes/VMinstallISO/"
+		echo
+	fi
+
+	isotemp="$HOME/Desktop/${OSver}VM${ProductBuildVersion}"
+	isofina="$HOME/Desktop/${OSver}VM${ProductBuildVersion}"
+
+	echo "暫存檔案 Temporary file = ${isotemp}.sparsebundle"
+	echo "完成檔案 Finished file  = ${isofina}.iso"
+	echo 
+	checkspace
+	read -p "繼續進行？ Start to continue (y/n) " yesno
+    case "$yesno" in
+      y|Y)
+        echo
+      ;;
+      *)
+        echo
+        echo "停止進行！！！               Stop going!!!"
+        echo
+        exit 0
+      ;;
+    esac
+
+	rm -rf "${isotemp}.sparsebundle" 2>/dev/null
+	rm -rf "${isofina}.iso" 2>/dev/null
+	echo "hdiutil create -size 18G -fs hfs+ -volname VMinstallISO  -type SPARSEBUNDLE ${isotemp}"
+	hdiutil create -size 18G -fs hfs+ -volname VMinstallISO -type SPARSEBUNDLE "${isotemp}"
+
+	echo
+	echo "hdiutil attach ${isotemp}.sparsebundle"
+	hdiutil attach "${isotemp}.sparsebundle"
+	devVMinstallISO=`diskutil info "VMinstallISO" | grep "Device Node" | awk '{print $3;}' `
+
+	echo 
+	sudo "${MacOSinstallerapp}/Contents/Resources/createinstallmedia" --volume /Volumes/VMinstallISO --nointeraction
+
+	echo 
+	diskutil rename "${devVMinstallISO}" "${OSver}VM${ProductBuildVersion}"
+	hdiutil detach ${devVMinstallISO} -force
+
+	echo 
+	echo "hdiutil makehybrid -o ${isofina} ${isotemp}.sparsebundle"
+	hdiutil makehybrid -o "${isofina}" "${isotemp}.sparsebundle"
+	open https://www.insanelymac.com/forum/topic/344299-guide-gigabyte-ga-z370n-wifi-i7-8700k-uhd-630-big-sur-110-dp1/
+
+	rm -rf "${isotemp}.sparsebundle" 2>/dev/null
+	echo 
+	echo "VMware install ISO ${OSver}VM${ProductBuildVersion} 安裝盤 製作完成"
+	echo "VMware install ISO ${OSver}VM${ProductBuildVersion} installer is finished."
+	echo 
+}
+function main()
+{
+	updatescript
+	selectfullapp
+	makeVMwareinstallISO
+}
+
+if [[ `id -u` -ne 0 ]];
+	then
+	echo
+	echo "適用版本：10.14 10.15 11.0 等版本"
+	echo "This script is used for 10.14 10.15 11.0 only."
+	echo
+	echo "這個腳本必須使用 root 權限!"
+	echo "This script must be run as root!"
+	sudo "$0" "$@"
+else
+	main "$@"
+fi
+
+exit 0
