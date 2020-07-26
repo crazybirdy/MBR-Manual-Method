@@ -2,7 +2,7 @@
 printf '\033[8;60;172t'
 clear
 
-LocalScriptVer="v1.0.3"
+LocalScriptVer="v1.0.4"
 RemoteScriptVer=""
 RemoteScriptPath="https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master/Q6-DownloadFullApp"
 LocateScriptPath="$HOME/Desktop/"
@@ -575,11 +575,15 @@ function checkspace()
 {
   RootDisk="/"
 
-  # 10.12+
-  TotalSpace=`diskutil info "${RootDisk}" | grep "Volume Total Space" | awk '{print $4;}' `
   # 10.11-
-  if [[ ${TotalSpace} == "" ]]; then
   TotalSpace=`diskutil info "${RootDisk}" | grep "Total Size" | awk '{print $3;}' `
+  # 10.12+
+  if [[ ${TotalSpace} == "" ]]; then
+  	TotalSpace=`diskutil info "${RootDisk}" | grep "Volume Total Space" | awk '{print $4;}' `
+  fi
+  # 10.14 APFS
+  if [[ ${TotalSpace} == "" ]]; then
+  	TotalSpace=`diskutil info "${RootDisk}" | grep "Container Total Space" | awk '{print $4;}' `
   fi
 
   # All exclude 10.12
@@ -588,15 +592,19 @@ function checkspace()
   if [[ ${FreeSpace} == "" ]]; then
   FreeSpace=`diskutil info "${RootDisk}" | grep "Volume Available Space" | awk '{print $4;}' `
   fi
+  # 10.14 APFS
+  if [[ ${FreeSpace} == "" ]]; then
+  FreeSpace=`diskutil info "${RootDisk}" | grep "Container Free Space" | awk '{print $4;}' `
+  fi
 
   printf "  開機系統分區 \e[1;34m${RootDisk}\e[0m 分區 可用/全部 容量大小: \e[1;34m${FreeSpace}/${TotalSpace}\e[0m GB\n"
   printf "  System space \e[1;34m${RootDisk}\e[0m Volume Free/Total Space: \e[1;34m${FreeSpace}/${TotalSpace}\e[0m GB\n"  
   echo 
-   if [[ ${FreeSpace} < "20.0" ]]; then
-    printf "  開機系統分區 \e[1;34m${RootDisk}\e[0m 分區 可用容量大小: 至少 \e[1;31m20.0\e[0m GB .......... 可用容量小於 20 GB         .. \e[1;31m建議停止下載\e[0m\n"
-    printf "  System space \e[1;34m${RootDisk}\e[0m Volume Free Space: need \e[1;31m20.0\e[0m GB .......... Free space less than 20 GB .. \e[1;31msuggest to stop downloading.\e[0m\n"
-    echo
-  fi
+  # if [[ ${FreeSpace} < "30.0" ]]; then
+  #  printf "  開機系統分區 \e[1;34m${RootDisk}\e[0m 分區 可用容量大小: 至少 \e[1;31m30.0\e[0m GB .......... 可用容量小於 30 GB         .. \e[1;31m建議停止下載\e[0m\n"
+  #  printf "  System space \e[1;34m${RootDisk}\e[0m Volume Free Space: need \e[1;31m30.0\e[0m GB .......... Free space less than 30 GB .. \e[1;31msuggest to stop downloading.\e[0m\n"
+  #  echo
+  #fi
 }
 function downloadfullappbigsur()
 {
