@@ -2,7 +2,7 @@
 printf '\033[8;60;140t'
 clear
 
-LocalScriptVer="v1.0.2"
+LocalScriptVer="v1.0.3"
 RemoteScriptVer=""
 RemoteScriptPath="https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master/Old-macOS-10+11+12"
 LocateScriptPath="$HOME/MBR-Manual-Method/Old-macOS-10+11+12"
@@ -126,19 +126,23 @@ function pkgdetect()
 
 if curl --output /dev/null --silent --head --fail "$url10105"; then
   size=`curl -sI $url10105 | grep -i Content-Length | awk '{print $2}' | awk NR==1 `
-  printf "1. \e[1;31m10.10.5 14F27\e[0m, size = $size\n" 
+  sizeGB=`echo $size | awk '{$1=$1/(1024^3); print $1;}' | sed 's/.\{4\}/& /g' | awk '{print $1,"GB"}'`
+
+  printf "1. \e[1;31m10.10.5 14F27\e[0m, size = $sizeGB, $size\n"
   echo "   $url10105"
 fi
   echo
 if curl --output /dev/null --silent --head --fail "$url10116"; then
   size=`curl -sI $url10116 | grep -i Content-Length | awk '{print $2}' | awk NR==1 `
-  printf "2. \e[1;31m10.11.6 15G31\e[0m, size = $size\n" 
+  sizeGB=`echo $size | awk '{$1=$1/(1024^3); print $1;}' | sed 's/.\{4\}/& /g' | awk '{print $1,"GB"}'`
+  printf "2. \e[1;31m10.11.6 15G31\e[0m, size = $sizeGB, $size\n"
   echo "   $url10116"
 fi
   echo
 if curl --output /dev/null --silent --head --fail "$url10126"; then
   size=`curl -sI $url10126 | grep -i Content-Length | awk '{print $2}' | awk NR==1 `
-  printf "3. \e[1;31m10.12.6 16G29\e[0m, size = $size\n" 
+  sizeGB=`echo $size | awk '{$1=$1/(1024^3); print $1;}' | sed 's/.\{4\}/& /g' | awk '{print $1,"GB"}'`
+  printf "3. \e[1;31m10.12.6 16G29\e[0m, size = $sizeGB, $size\n"
   echo "   $url10126"
 fi
 
