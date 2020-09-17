@@ -31,11 +31,6 @@ if [[ ! -f "${LocateScriptPath}/${ScriptName}" ]]; then
 fi
 }
 selfUpdate() {
-  if [[ -d "$HOME/MBR-Manual-Method/" ]]; then
-	  if [[ ! -f "$HOME/MBR-Manual-Method/RunMe" ]]; then
-	    rm -rf "$HOME/MBR-Manual-Method/"
-	  fi
-  fi
   echo
   cat "/private/tmp/${ScriptName}" > "${LocateScriptPath}/${ScriptName}"
   chmod +x "${LocateScriptPath}/${ScriptName}"
@@ -53,6 +48,12 @@ updatescript() {
   RemoteScriptVer=$( cat /private/tmp/${ScriptName} | grep 'LocalScriptVer="v' | grep -v grep | tr -cd '.0-9' )
   LVALUE=$( echo $LocalScriptVer | tr -cd [:digit:] )
   RVALUE=$( echo $RemoteScriptVer | tr -cd [:digit:] )
+
+  if [[ -d "$HOME/MBR-Manual-Method/" ]]; then
+    if [[ ! -f "$HOME/MBR-Manual-Method/RunMe" ]]; then
+      rm -rf "$HOME/MBR-Manual-Method/"
+    fi
+  fi
 
   echo
   if IsNumericOnly $RVALUE; then
