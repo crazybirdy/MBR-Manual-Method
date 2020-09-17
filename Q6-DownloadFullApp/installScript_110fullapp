@@ -5,7 +5,7 @@ clear
 LocalScriptVer="v1.0.5"
 RemoteScriptVer=""
 RemoteScriptPath="https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master/Q6-DownloadFullApp"
-LocateScriptPath="$HOME/Desktop/"
+LocateScriptPath="$HOME/Desktop"
 ScriptName="installScript_110fullapp"
 
 FileNameArray=(
