@@ -2,7 +2,7 @@
 printf '\033[8;60;165t'
 clear
 
-LocalScriptVer="v1.0.3"
+LocalScriptVer="v1.0.4"
 RemoteScriptVer=""
 RemoteScriptPath="https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master/Q7-Update-installScript"
 LocateScriptPath="$HOME/MBR-Manual-Method/Q7-Update-installScript"
@@ -264,7 +264,9 @@ function updatelist()
       macOSUpdkeydistribution[$index]=`echo ${macOSUpdkey[$index]} | sed 's/.\{9\}/& /g' | awk '{print $1;}' `
       macOSUpdsalt[$index]=`echo $macOSUpdlist | sed 's/\// /g' | awk '{print $8;}' `
 
-      url="https://swdist.apple.com/content/downloads/${macOSUpdversion[$index]}/${macOSUpdkey[$index]}/${macOSUpdsalt[$index]}/"
+      urls="https://swdist.apple.com/content/downloads/${macOSUpdversion[$index]}/${macOSUpdkey[$index]}/${macOSUpdsalt[$index]}/"
+      macOSurlpath=${macOSUpdlist%%'macOSUpd'*}
+      url="${macOSurlpath}"
       distribution="${macOSUpdkeydistribution[$index]}.English.dist"
       rm -f *dist
       curl $url$distribution -o ${macOSUpdkeydistribution[$index]}.English.dist 2>/dev/null
@@ -280,7 +282,7 @@ function updatelist()
       fi
       rm -f *dist
 
-      macOSuptime[$index]=`cat ${catalogfile} | grep -A 5 PostDate | grep -B 7 $url${macOSUpdkeydistribution[$index]} | grep \<date\> | sed 's/<date>//g' | sed 's/<\/date>//g' | awk '{print $1;}' | sed 's/T/ /g' | sed 's/Z//g' | awk NR==1 `
+      macOSuptime[$index]=`cat ${catalogfile} | grep -A 5 PostDate | grep -B 7 $urls${macOSUpdkeydistribution[$index]} | grep \<date\> | sed 's/<date>//g' | sed 's/<\/date>//g' | awk '{print $1;}' | sed 's/T/ /g' | sed 's/Z//g' | awk NR==1 `
       macOSupdate[$index]="${macOSuptime[$index]} .. ${macOSUpdkeydistribution[$index]} .. ${macOSupdatebuildver[$index]} Update ${macOSupdatebeta[$index]}"
 
       macOSlist[$index]=`echo ${macOSUpdlist} `
@@ -292,7 +294,7 @@ function updatelist()
   do
     if [[ ! $macOSUpdCombolist == "" ]]; then
 
-      macOSUpdver[$index]=`echo $macOSUpdCombolist | sed 's/\// /g' | awk '{print $9;}' | sed 's/macOSUpdCombo//g' | sed 's/Auto.pkg//g' | sed 's/ForSeed.pkg//g' | sed 's/.pkg//g' `
+      macOSUpdver[$index]=`echo $macOSUpdCombolist | sed 's/\// /g' | awk '{print $9;}' | sed 's/macOSUpdCombo//g' | sed 's/Auto.pkg//g' | sed 's/ForSeed.pkg//g' | sed 's/.pkg//g'  `
 
       macOSUpdversion1[$index]=`echo $macOSUpdCombolist | sed 's/\// /g' | awk '{print $5;}' `
       macOSUpdversion2[$index]=`echo $macOSUpdCombolist | sed 's/\// /g' | awk '{print $6;}' `
@@ -301,7 +303,9 @@ function updatelist()
       macOSUpdkeydistribution[$index]=`echo ${macOSUpdkey[$index]} | sed 's/.\{9\}/& /g' | awk '{print $1;}' `
       macOSUpdsalt[$index]=`echo $macOSUpdCombolist | sed 's/\// /g' | awk '{print $8;}' `
 
-      url="https://swdist.apple.com/content/downloads/${macOSUpdversion[$index]}/${macOSUpdkey[$index]}/${macOSUpdsalt[$index]}/"
+      urls="https://swdist.apple.com/content/downloads/${macOSUpdversion[$index]}/${macOSUpdkey[$index]}/${macOSUpdsalt[$index]}/"
+      macOSurlpath=${macOSUpdCombolist%%'macOSUpd'*}
+      url="${macOSurlpath}"
       distribution="${macOSUpdkeydistribution[$index]}.English.dist"
       rm -f *dist
       curl $url$distribution -o ${macOSUpdkeydistribution[$index]}.English.dist 2>/dev/null
@@ -319,7 +323,7 @@ function updatelist()
 
       macOSupdatetypeone=`echo $macOSUpdCombolist | sed 's/<string>//g' | sed 's/<\/string>//g' | sed 's/\// /g' | awk '{print $9;}' | sed 's/macOSUpdCombo//g' | sed 's/.pkg//g' `
       macOSupdatetype[$index]=`echo $macOSupdatetypeone | sed 's/10.14//g' | sed 's/.1//g' | sed 's/.2//g' | sed 's/.3//g' | sed 's/.4//g' | sed 's/.5//g' | sed 's/.6//g' | sed 's/.7//g' `
-      macOSuptime[$index]=`cat ${catalogfile} | grep -A 5 PostDate | grep -B 7 $url${macOSUpdkeydistribution[$index]} | grep \<date\> | sed 's/<date>//g' | sed 's/<\/date>//g' | awk '{print $1;}' | sed 's/T/ /g' | sed 's/Z//g' | awk NR==1 `
+      macOSuptime[$index]=`cat ${catalogfile} | grep -A 5 PostDate | grep -B 7 $urls${macOSUpdkeydistribution[$index]} | grep \<date\> | sed 's/<date>//g' | sed 's/<\/date>//g' | awk '{print $1;}' | sed 's/T/ /g' | sed 's/Z//g' | awk NR==1 `
       macOSupdate[$index]="${macOSuptime[$index]} .. ${macOSUpdkeydistribution[$index]} .. ${macOSupdatebuildver[$index]} Combo Update ${macOSupdatebeta[$index]}"
 
       macOSlist[$index]=`echo ${macOSUpdCombolist} `
@@ -340,7 +344,9 @@ function updatelist()
       macOSUpdkeydistribution[$index]=`echo ${macOSUpdkey[$index]} | sed 's/.\{9\}/& /g' | awk '{print $1;}' `
       macOSUpdsalt[$index]=`echo $SecUpdlist | sed 's/\// /g' | awk '{print $8;}' `
 
-      url="https://swdist.apple.com/content/downloads/${macOSUpdversion[$index]}/${macOSUpdkey[$index]}/${macOSUpdsalt[$index]}/"
+      urls="https://swdist.apple.com/content/downloads/${macOSUpdversion[$index]}/${macOSUpdkey[$index]}/${macOSUpdsalt[$index]}/"
+      macOSurlpath=${SecUpdlist%%'SecUpd'*}
+      url="${macOSurlpath}"
       distribution="${macOSUpdkeydistribution[$index]}.English.dist"
       rm -f *dist
       curl $url$distribution -o ${macOSUpdkeydistribution[$index]}.English.dist 2>/dev/null
@@ -356,7 +362,7 @@ function updatelist()
 
       macOSupdatetypeone=`echo $SecUpdlist | sed 's/<string>//g' | sed 's/<\/string>//g' | sed 's/\// /g' | awk '{print $9;}' | sed 's/macOSUpdCombo//g' | sed 's/.pkg//g' `
       macOSupdatetype[$index]=`echo $macOSupdatetypeone | sed 's/10.14//g' | sed 's/.1//g' | sed 's/.2//g' | sed 's/.3//g' | sed 's/.4//g' | sed 's/.5//g' | sed 's/.6//g' | sed 's/.7//g' `
-      macOSuptime[$index]=`cat ${catalogfile} | grep -A 5 PostDate | grep -B 7 $url${macOSUpdkeydistribution[$index]} | grep \<date\> | sed 's/<date>//g' | sed 's/<\/date>//g' | awk '{print $1;}' | sed 's/T/ /g' | sed 's/Z//g' | awk NR==1 `
+      macOSuptime[$index]=`cat ${catalogfile} | grep -A 5 PostDate | grep -B 7 $urls${macOSUpdkeydistribution[$index]} | grep \<date\> | sed 's/<date>//g' | sed 's/<\/date>//g' | awk '{print $1;}' | sed 's/T/ /g' | sed 's/Z//g' | awk NR==1 `
       macOSupdate[$index]="${macOSuptime[$index]} .. ${macOSUpdkeydistribution[$index]} .. ${macOSupdatebuildver[$index]} Security Update ${macOSupdatebeta[$index]}"
 
       macOSlist[$index]=`echo ${SecUpdlist} `
