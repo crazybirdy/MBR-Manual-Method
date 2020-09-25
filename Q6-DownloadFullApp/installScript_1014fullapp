@@ -2,7 +2,7 @@
 printf '\033[8;60;165t'
 clear
 
-LocalScriptVer="v1.0.1"
+LocalScriptVer="v1.0.2"
 RemoteScriptVer=""
 RemoteScriptPath="https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master/Q6-DownloadFullApp"
 LocateScriptPath="$HOME/MBR-Manual-Method/Q6-DownloadFullApp"
@@ -217,6 +217,7 @@ function fullapplist()
   for macOSdmglist in "${macOSdmg[@]}"
   do
     if [[ ! $macOSdmglist == "" ]]; then
+      macOSdmgpath=${macOSdmglist%%'BaseSystem.dmg'*}
       macOSUpdver[$index]=`echo $macOSdmglist | sed 's/\// /g' | awk '{print $9;}' | sed 's/macOSUpd//g' | sed 's/.pkg//g' `
       macOSUpdversion1[$index]=`echo $macOSdmglist | sed 's/\// /g' | awk '{print $5;}' `
       macOSUpdversion2[$index]=`echo $macOSdmglist | sed 's/\// /g' | awk '{print $6;}' `
@@ -225,7 +226,7 @@ function fullapplist()
       macOSUpdkeydistribution[$index]=`echo ${macOSUpdkey[$index]} | sed 's/.\{9\}/& /g' | awk '{print $1;}' `
       macOSUpdsalt[$index]=`echo $macOSdmglist | sed 's/\// /g' | awk '{print $8;}' `
 
-      url="https://swdist.apple.com/content/downloads/${macOSUpdversion[$index]}/${macOSUpdkey[$index]}/${macOSUpdsalt[$index]}/"
+      url="${macOSdmgpath}"
       distribution="${macOSUpdkeydistribution[$index]}.English.dist"
       rm -f *dist
 
@@ -236,7 +237,7 @@ function fullapplist()
       rm -f *dist
 
       macOSupdatebuildver[$index]="${macOSupdateosver[$index]}.${macOSupdatebuildver[$index]}"
-      macOSuptime[$index]=`cat ${catalogfile} | grep -A 5 PostDate | grep -B 7 $url${macOSUpdkeydistribution[$index]} | grep \<date\> | sed 's/<date>//g' | sed 's/<\/date>//g' | awk '{print $1;}' | sed 's/T/ /g' | sed 's/Z//g' | awk NR==1 `
+      macOSuptime[$index]=`cat ${catalogfile} | grep -A 5 PostDate | grep -B 7 ${macOSUpdkeydistribution[$index]} | grep \<date\> | sed 's/<date>//g' | sed 's/<\/date>//g' | awk '{print $1;}' | sed 's/T/ /g' | sed 's/Z//g' | awk NR==1 `
       macOSupdate[$index]="${macOSuptime[$index]} .. ${macOSUpdkeydistribution[$index]} .. ${macOSupdatebuildver[$index]} ${macOSupdatebeta[$index]}"
       macOSlist[$index]=`echo ${macOSdmglist} `
       let index++
