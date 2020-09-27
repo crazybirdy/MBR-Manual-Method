@@ -2,7 +2,7 @@
 printf '\033[8;60;180t'
 clear
 
-LocalScriptVer="v1.0.1"
+LocalScriptVer="v1.0.2"
 RemoteScriptVer=""
 RemoteScriptPath="https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master"
 LocateScriptPath="$HOME/MBR-Manual-Method"
@@ -187,7 +187,7 @@ function makembrInstaller()
 	clear
 
 	echo 
-	printf "\e[1;34m此腳本僅適用製作 10.15.6 的安裝盤。               This script is used to make 10.15.6 installer only.\e[0m\n"
+	printf "\e[1;34m此腳本僅適用製作 10.15.6, 10.15.7 的安裝盤。               This script is used to make 10.15.6, 10.15.7 installer only.\e[0m\n"
 	echo 
 	echo "製作 macOS MBR installer 安裝盤，你需要一個分區，"
 	echo "Disk1mbrInstaller, 最小空間: 10.0 GB，這是開機安裝盤。"
@@ -266,14 +266,14 @@ function makembrInstaller()
 
 	if [[ ${ProductVersion} < 10.15.6 ]]; then
 		echo 
-		printf "\e[1;34m此腳本僅適用製作 10.15.6 的安裝盤。               This script is used to make 10.15.6 installer only.\e[0m\n"
+		printf "\e[1;34m此腳本僅適用製作 10.15.6, 10.15.7 的安裝盤。               This script is used to make 10.15.6, 10.15.7 installer only.\e[0m\n"
 		echo 
 		exit
 	fi
 	mbrpatchver=`echo ${ProductVersion} | sed 's/.\{5\}/& /g' | awk '{print $1;}' `
 	if [[ ${mbrpatchver} < 10.15 ]]; then
 		echo 
-		printf "\e[1;34m此腳本僅適用製作 10.15.6 的安裝盤。               This script is used to make 10.15.6 installer only.\e[0m\n"
+		printf "\e[1;34m此腳本僅適用製作 10.15.6, 10.15.7 的安裝盤。               This script is used to make 10.15.6, 10.15.7 installer only.\e[0m\n"
 		echo 
 		exit
 	fi
@@ -405,14 +405,14 @@ function makembrInstaller()
 	fi
 
 	open "${scriptdirpath}/Q6-DownloadFullApp"
- 	echo "必須使用 10.14.0 ~ 10.15.5 版本的 BaseSystem.dmg 才可安裝 10.15.6 MBR HFS+ 系統"
-	echo "Need to use the BaseSystem.dmg of 10.14.0 ~ 10.15.5 version to install 10.15.6 MBR HFS+."
+ 	echo "必須使用 10.14.0 ~ 10.15.5 版本的 BaseSystem.dmg 才可安裝 10.15.6, 10.15.7 MBR HFS+ 系統"
+	echo "Need to use the BaseSystem.dmg of 10.14.0 ~ 10.15.5 version to install 10.15.6, 10.15.7 MBR HFS+."
 	echo
 	echo "可以從 Q6-DownloadFullApp/installScript_BaseSystem 下載 10.15.5 以前版本的 BaseSystem.dmg"
 	echo "You can download BaseSystem.dmg before 10.15.5 from Q6-DownloadFullApp/installScript_BaseSystem."
 	echo
-	echo "4.拖入 10.14.0 ~ 10.15.5 版本的 BaseSystem.dmg (不可使用 10.15.6 版本) : "
-	read -p "4.Drag in the BaseSystem.dmg of 10.14.0 ~ 10.15.5 version (Can't be 10.15.6): " SelectBaseSystem
+	echo "4.拖入 10.14.0 ~ 10.15.5 版本的 BaseSystem.dmg (不可使用 10.15.6, 10.15.7 版本) : "
+	read -p "4.Drag in the BaseSystem.dmg of 10.14.0 ~ 10.15.5 version (Can't be 10.15.6, 10.15.7): " SelectBaseSystem
 
 	if [[ ! -f "${SelectBaseSystem}" ]]; then
 		echo
@@ -475,15 +475,15 @@ function makembrInstaller()
 
 	if [[ ${BaseProductVersion} < "10.14.0" ]]; then
 		echo
-		echo "選取的 BaseSystem.dmg 版本 無法安裝 10.15.6"
-		echo "The selected BaseSystem.dmg can't be used to install 10.15.6"
+		echo "選取的 BaseSystem.dmg 版本 無法安裝 10.15.6, 10.15.7"
+		echo "The selected BaseSystem.dmg can't be used to install 10.15.6, 10.15.7"
 		echo
 		exit
 	fi
 	if [[ ${BaseProductVersion} > "10.15.5" ]]; then
 		echo
-		echo "選取的 BaseSystem.dmg 版本 無法安裝 10.15.6"
-		echo "The selected BaseSystem.dmg can't be used to install 10.15.6"
+		echo "選取的 BaseSystem.dmg 版本 無法安裝 10.15.6, 10.15.7"
+		echo "The selected BaseSystem.dmg can't be used to install 10.15.6, 10.15.7"
 		echo
 		exit
 	fi
@@ -664,7 +664,7 @@ if [[ `id -u` -ne 0 ]];
 	then
 	updatescript
 	echo 
-	printf "\e[1;34m此腳本僅適用製作 10.15.6 的安裝盤。               This script is used to make 10.15.6 installer only.\e[0m\n"
+	printf "\e[1;34m此腳本僅適用製作 10.15.6, 10.15.7 的安裝盤。               This script is used to make 10.15.6, 10.15.7 installer only.\e[0m\n"
 	echo 
 	echo "製作 macOS MBR installer 安裝盤，你需要一個分區，"
 	echo "Disk1mbrInstaller, 最小空間: 10.0 GB，這是開機安裝盤。"
