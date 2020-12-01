@@ -2,7 +2,7 @@
 printf '\033[8;60;140t'
 clear
 
-LocalScriptVer="v1.0.3"
+LocalScriptVer="v1.0.4"
 RemoteScriptVer=""
 RemoteScriptPath="https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master/Old-macOS-10+11+12"
 LocateScriptPath="$HOME/MBR-Manual-Method/Old-macOS-10+11+12"
@@ -103,26 +103,13 @@ function headline()
 }
 function pkgdetect()
 {
-  # OS X Yosemite, 10.10.5, 14F27 https://support.apple.com/en-us/HT210717
-  #url10105="http://updates-http.cdn-apple.com/2019/cert/061-41343-20191023-02465f92-3ab5-4c92-bfe2-b725447a070d/InstallMacOSX.dmg"
-  url10105html="https://support.apple.com/en-us/HT210717"
-  # OS X El Capitan, 10.11.6, 15G31 https://support.apple.com/en-us/HT206886
-  #url10116="http://updates-http.cdn-apple.com/2019/cert/061-41424-20191024-218af9ec-cf50-4516-9011-228c78eda3d2/InstallMacOSX.dmg"
-  url10116html="https://support.apple.com/en-us/HT206886"
-  # macOS Sierra, 10.12.6, 16G29 https://support.apple.com/en-us/HT208202
-  #url10126="http://updates-http.cdn-apple.com/2019/cert/061-39476-20191023-48f365f4-0015-4c41-9f44-39d3d2aca067/InstallOS.dmg"
-  url10126html="https://support.apple.com/en-us/HT208202"
-
   echo "正在搜尋完整安裝app，請耐心等候！ Searching for full installer app from catalogs of updates-http.cdn-apple.com. Be patient!"
   echo 
-
-  curl ${url10105html} -o "/private/tmp/url10105html" 2>/dev/null
-  url10105=`cat "/private/tmp/url10105html" | sed 's/"/\'$'\n/g' | grep http | grep dmg | grep Install `
-  curl ${url10116html} -o "/private/tmp/url10116html" 2>/dev/null
-  url10116=`cat "/private/tmp/url10116html" | sed 's/"/\'$'\n/g' | grep http | grep dmg | grep Install `
-  curl ${url10126html} -o "/private/tmp/url10126html" 2>/dev/null
-  url10126=`cat "/private/tmp/url10126html" | sed 's/"/\'$'\n/g' | grep http | grep dmg | grep Install `
-  rm -f /private/tmp/url101*
+  
+  # 2020.12.01 update https://support.apple.com/en-gb/HT211683
+  url10105=http://updates-http.cdn-apple.com/2019/cert/061-41343-20191023-02465f92-3ab5-4c92-bfe2-b725447a070d/InstallMacOSX.dmg
+  url10116=http://updates-http.cdn-apple.com/2019/cert/061-41424-20191024-218af9ec-cf50-4516-9011-228c78eda3d2/InstallMacOSX.dmg
+  url10126=http://updates-http.cdn-apple.com/2019/cert/061-39476-20191023-48f365f4-0015-4c41-9f44-39d3d2aca067/InstallOS.dmg
 
 if curl --output /dev/null --silent --head --fail "$url10105"; then
   size=`curl -sI $url10105 | grep -i Content-Length | awk '{print $2}' | awk NR==1 `
