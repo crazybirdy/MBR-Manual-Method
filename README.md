@@ -4,6 +4,9 @@ https://github.com/crazybirdy/MBR-Manual-Method
 # Install to MBR HFS+. (10.13, 10.14, 10.15)
 This tool is used to install macOS 10.13, 10.14, 10.15 to MBR HFS+ partition.
 
+# macOS Installer app. (10.13, 10.14, 10.15)
+If you need macOS installer app as 10.13, 10.14, 10.15, find it from Q6-DownloadFullApp.
+
 # Old macOS Installer app. (10.10, 10.11, 10.12)
 If you need old macOS installer app as 10.10, 10.11, 10.12, find it from Old-macOS-10+11+12/installScript_1012fullapp.
 
