@@ -20,4 +20,4 @@ curl "https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master/RunM
 https://github.com/crazybirdy/MBR-Manual-Method/releases
 
 # macOS Big Sur vs MBR HFS+
-This is no way to install macOS Big Sur to MBR and HFS+.
+Thdere is no way to install macOS Big Sur to MBR and HFS+.
