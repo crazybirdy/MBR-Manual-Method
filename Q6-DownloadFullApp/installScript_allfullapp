@@ -2,7 +2,7 @@
 printf '\033[8;60;165t'
 clear
 
-LocalScriptVer="v1.0.6"
+LocalScriptVer="v1.0.7"
 RemoteScriptVer=""
 RemoteScriptPath="https://raw.githubusercontent.com/crazybirdy/MBR-Manual-Method/master/Q6-DownloadFullApp"
 LocateScriptPath="$HOME/MBR-Manual-Method/Q6-DownloadFullApp"
@@ -308,10 +308,17 @@ function fullapplist()
 
       macOSupdatebuildver[$index]="${macOSupdateosver[$index]}.${macOSupdatebuildver[$index]}"
       ## 移除 重複版本 列表 2025.08.12
-      indexOld=${index}-1
-      macOSverNew=`echo ${macOSupdatebuildver[${index}]} `
-      macOSverOld=`echo ${macOSupdatebuildver[${indexOld}]} `
-      if [[ ! ${macOSverNew} == ${macOSverOld} ]]; then
+      if [[ ${index} > 0 ]]; then
+        indexOld=${index}-1
+        macOSverNew=`echo ${macOSupdatebuildver[${index}]} `
+        macOSverOld=`echo ${macOSupdatebuildver[${indexOld}]} `
+        if [[ ! ${macOSverNew} == ${macOSverOld} ]]; then
+          macOSuptime[$index]=`cat ${catalogfile} | grep -A 5 PostDate | grep -B 7 ${macOSUpdkeydistribution[$index]} | grep \<date\> | sed 's/<date>//g' | sed 's/<\/date>//g' | awk '{print $1;}' | sed 's/T/ /g' | sed 's/Z//g' | awk NR==1 `
+          macOSupdate[$index]="${macOSuptime[$index]} .. ${macOSUpdkeydistribution[$index]} .. ${macOSupdatebuildver[$index]} ${macOSupdatebeta[$index]}"
+          macOSlist[$index]=`echo ${macOSdmglist} `
+          let index++
+        fi
+      else
         macOSuptime[$index]=`cat ${catalogfile} | grep -A 5 PostDate | grep -B 7 ${macOSUpdkeydistribution[$index]} | grep \<date\> | sed 's/<date>//g' | sed 's/<\/date>//g' | awk '{print $1;}' | sed 's/T/ /g' | sed 's/Z//g' | awk NR==1 `
         macOSupdate[$index]="${macOSuptime[$index]} .. ${macOSUpdkeydistribution[$index]} .. ${macOSupdatebuildver[$index]} ${macOSupdatebeta[$index]}"
         macOSlist[$index]=`echo ${macOSdmglist} `
